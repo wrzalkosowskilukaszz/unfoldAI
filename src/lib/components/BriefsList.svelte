@@ -73,11 +73,21 @@
 		briefStore.duplicateBrief(id);
 	}
 
-	function handleDelete(id: string, name: string, e: MouseEvent) {
+	/**
+	 * Deliberately not window.confirm: browsers suppress it after a few dialogs
+	 * (silently returning false, so the delete just appears to do nothing), and
+	 * it is unreliable inside a packaged app webview.
+	 */
+	let pendingDelete = $state<SavedBrief | null>(null);
+
+	function handleDelete(id: string, _name: string, e: MouseEvent) {
 		e.stopPropagation();
-		if (confirm(`Delete "${name}"? This can't be undone.`)) {
-			briefStore.deleteBrief(id);
-		}
+		pendingDelete = briefStore.briefs[id] ?? null;
+	}
+
+	function confirmDelete() {
+		if (pendingDelete) briefStore.deleteBrief(pendingDelete.id);
+		pendingDelete = null;
 	}
 
 	/** Shared by the desktop icon row and the mobile action sheet. */
@@ -365,9 +375,9 @@
 			<button
 				type="button"
 				onclick={() => {
-					const { id, name } = sheet;
+					const target = sheet;
 					sheetFor = null;
-					if (confirm(`Delete "${name}"? This can't be undone.`)) briefStore.deleteBrief(id);
+					pendingDelete = target;
 				}}
 				class="flex min-h-13 w-full items-center gap-3 rounded-xl px-3 text-sm font-medium text-contradiction active:bg-contradiction-wash"
 			>
@@ -382,6 +392,55 @@
 			>
 				Cancel
 			</button>
+		</div>
+	</div>
+{/if}
+
+<!-- Delete confirmation. In-app rather than window.confirm so it can never be
+     silently suppressed by the browser, and so it matches the rest of the UI. -->
+{#if pendingDelete}
+	<div class="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+		<button
+			type="button"
+			aria-label="Cancel"
+			onclick={() => (pendingDelete = null)}
+			class="absolute inset-0 bg-ink/40 backdrop-blur-[2px]"
+		></button>
+
+		<div
+			class="rise safe-bottom relative w-full max-w-sm rounded-2xl border border-border bg-surface p-5 elevated"
+		>
+			<div class="flex items-start gap-3">
+				<span
+					class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-contradiction-wash text-contradiction"
+				>
+					<Trash2 size={18} />
+				</span>
+				<div class="min-w-0">
+					<h2 class="font-display text-base font-semibold text-ink">Delete this brief?</h2>
+					<p class="mt-1 text-sm leading-relaxed text-ink-soft">
+						<span class="font-medium text-ink">{pendingDelete.name}</span> and everything in it will
+						be removed. This can't be undone.
+					</p>
+				</div>
+			</div>
+
+			<div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+				<button
+					type="button"
+					onclick={() => (pendingDelete = null)}
+					class="flex min-h-11 items-center justify-center rounded-full border border-border bg-surface px-5 text-sm font-medium text-ink-soft transition hover:bg-surface-hover"
+				>
+					Keep it
+				</button>
+				<button
+					type="button"
+					onclick={confirmDelete}
+					class="flex min-h-11 items-center justify-center rounded-full bg-contradiction px-5 text-sm font-semibold text-white transition hover:opacity-90 active:scale-[0.98]"
+				>
+					Delete
+				</button>
+			</div>
 		</div>
 	</div>
 {/if}

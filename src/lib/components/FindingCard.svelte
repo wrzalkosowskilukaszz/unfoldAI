@@ -51,22 +51,14 @@
 			<span class="text-[0.66rem] font-medium tracking-[0.12em] text-ink-faint uppercase">
 				{finding.dimension}
 			</span>
-			{#if finding.status === 'dismissed'}
-			<div class="flex items-start justify-between gap-3 rounded-xl bg-surface-alt/70 px-3 py-2">
-				<p class="text-sm text-ink-soft">Set aside — you decided this one doesn't apply.</p>
-				<button
-					type="button"
-					onclick={() => briefStore.reopenFinding(finding.id)}
-					class="flex shrink-0 items-center gap-1 text-[0.72rem] font-medium text-ink-faint transition hover:text-ink-soft"
-				>
-					<RotateCcw size={11} />
-					Bring back
-				</button>
-			</div>
-		{:else if finding.status === 'confirmed'}
+			{#if finding.status === 'confirmed'}
 				<span class="ml-auto flex items-center gap-1 text-[0.66rem] font-semibold text-clear uppercase">
 					<Lock size={10} />
 					Locked
+				</span>
+			{:else if finding.status === 'dismissed'}
+				<span class="ml-auto text-[0.66rem] font-semibold tracking-wide text-ink-faint uppercase">
+					Set aside
 				</span>
 			{/if}
 		</div>

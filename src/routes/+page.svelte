@@ -48,7 +48,9 @@
 			style="background: radial-gradient(120% 70% at 78% 0%, var(--c-accent-wash), transparent 70%)"
 		></div>
 
-		<div class="relative mx-auto max-w-5xl px-6 py-12 sm:px-10 sm:py-16">
+		<!-- <main> so screen-reader users can jump straight to content; the gallery
+		     previously had no landmark at all. -->
+		<main class="relative mx-auto max-w-5xl px-6 py-12 sm:px-10 sm:py-16">
 			<div class="flex items-center justify-between">
 				<Logo />
 				<button
@@ -101,7 +103,7 @@
 					<BriefsList onopen={openBrief} onuploaddoc={() => (view = 'import')} />
 				{/if}
 			</div>
-		</div>
+		</main>
 	</div>
 {:else}
 	<!-- Wizard: app shell. Persistent rail on the left, work on the right. -->

@@ -17,9 +17,9 @@
 
 	--c-ink: #12111a;
 	--c-ink-soft: #5a5768;
-	--c-ink-faint: #918da3;
+	--c-ink-faint: #6b6579;
 
-	--c-accent: #7a6cff;
+	--c-accent: #5f4fe8;
 	--c-accent-soft: #a79dff;
 	--c-accent-wash: #e0dcf9;
 	--c-on-accent: #ffffff;
@@ -50,12 +50,13 @@
 
 	--c-ink: #f2f1f7;
 	--c-ink-soft: #a8a4bd;
-	--c-ink-faint: #6e6a85;
+	--c-ink-faint: #938ead;
 
 	--c-accent: #8f83ff;
 	--c-accent-soft: #a79dff;
 	--c-accent-wash: #221f45;
-	--c-on-accent: #ffffff;
+	/* Dark text on the light violet fill: white on it only reaches 3.06:1. */
+	--c-on-accent: #14121f;
 
 	--c-clear: #4ade9b;
 	--c-clear-wash: #12281f;
@@ -141,6 +142,25 @@ body::before {
 
 .elevated {
 	box-shadow: var(--c-elevation);
+}
+
+/*
+ * Visible keyboard focus (WCAG 2.4.7). Several controls carry `outline-none`
+ * to suppress the browser's default ring, which without a replacement leaves
+ * keyboard users with no idea where they are. These selectors are one point
+ * more specific than the utility, so they win it back — and only on
+ * :focus-visible, so a mouse click never draws a ring.
+ */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+[role='button']:focus-visible,
+[tabindex]:focus-visible {
+	outline: 2px solid var(--c-accent);
+	outline-offset: 2px;
 }
 
 /* Clears the home indicator on notched phones — and in a packaged app shell. */

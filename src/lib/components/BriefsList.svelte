@@ -14,6 +14,7 @@
 	import { briefStore, TOTAL_STEPS } from '$lib/stores/brief.svelte';
 	import type { SavedBrief } from '$lib/types';
 	import FirstRun from '$lib/components/FirstRun.svelte';
+	import { modal } from '$lib/actions/modal';
 
 	let {
 		onopen,
@@ -320,7 +321,13 @@
 <!-- Mobile action sheet: full-width rows, comfortably spaced, destructive action
      set apart at the bottom so it is never adjacent to a routine one. -->
 {#if sheet}
-	<div class="fixed inset-0 z-50 lg:hidden">
+	<div
+		class="fixed inset-0 z-50 lg:hidden"
+		role="dialog"
+		aria-modal="true"
+		aria-label="Actions for {sheet.name}"
+		use:modal={() => (sheetFor = null)}
+	>
 		<button
 			type="button"
 			aria-label="Close menu"
@@ -399,7 +406,13 @@
 <!-- Delete confirmation. In-app rather than window.confirm so it can never be
      silently suppressed by the browser, and so it matches the rest of the UI. -->
 {#if pendingDelete}
-	<div class="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+	<div
+		class="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="delete-dialog-title"
+		use:modal={() => (pendingDelete = null)}
+	>
 		<button
 			type="button"
 			aria-label="Cancel"
@@ -417,7 +430,9 @@
 					<Trash2 size={18} />
 				</span>
 				<div class="min-w-0">
-					<h2 class="font-display text-base font-semibold text-ink">Delete this brief?</h2>
+					<h2 id="delete-dialog-title" class="font-display text-base font-semibold text-ink">
+						Delete this brief?
+					</h2>
 					<p class="mt-1 text-sm leading-relaxed text-ink-soft">
 						<span class="font-medium text-ink">{pendingDelete.name}</span> and everything in it will
 						be removed. This can't be undone.

@@ -185,31 +185,44 @@ export interface ProjectTypeLens {
 	label: string;
 	/** Handed to every prompt so the model reasons as a specialist in this field. */
 	lens: string;
+	/**
+	 * The knowledge model. Not a list of fields — a list of parts that must agree
+	 * with each other. This is what lets the survey catch "your objective is
+	 * awareness but your success metric measures conversion", which is a far more
+	 * useful finding than "the success metric is vague".
+	 */
+	coherence: string;
 }
 
 export const PROJECT_TYPES: Record<ProjectType, ProjectTypeLens> = {
 	identity: {
 		label: 'Brand identity',
-		lens: 'Reason as a brand identity specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: whether naming is in scope; which applications the identity must survive (signage, packaging, digital, merchandise, vehicle livery); how deep the guidelines must go and who will apply them; whether existing equity must be retained or deliberately broken; the competitor set it must stand apart from; typeface licensing and who pays for it; and whether any trademark search has happened.'
+		lens: `Reason as a brand identity specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: whether naming is in scope; which applications the identity must survive (signage, packaging, digital, merchandise, vehicle livery); how deep the guidelines must go and who will apply them; whether existing equity must be retained or deliberately broken; the competitor set it must stand apart from; typeface licensing and who pays for it; and whether any trademark search has happened.`,
+		coherence: `Naming scope must agree with budget and timeline — naming is a project in itself. Ambition must agree with equity: a brief asking to evolve rather than revolutionise, while also asking for a wholly new visual language, is in conflict. The application list must agree with guideline depth — many applications and thin guidelines means someone will improvise. Typeface licensing must agree with the application list, since licence tiers are priced by use.`
 	},
 	website: {
 		label: 'Website or app',
-		lens: 'Reason as a digital product specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: who writes the content and when it will exist; page or screen count and template count as distinct numbers; the CMS or platform and whether it is already chosen; required integrations (payments, CRM, booking, analytics); responsive and accessibility expectations; who builds it versus who designs it; migration of existing content and URLs; and what happens after launch.'
+		lens: `Reason as a digital product specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: who writes the content and when it will exist; page or screen count and template count as distinct numbers; the CMS or platform and whether it is already chosen; required integrations (payments, CRM, booking, analytics); responsive and accessibility expectations; who builds it versus who designs it; migration of existing content and URLs; and what happens after launch.`,
+		coherence: `The business objective must agree with the primary user action and with the success metric — an awareness objective measured by demo bookings is a mismatch worth raising. Content ownership must agree with the timeline: if the client writes the copy and launch is in six weeks, say so. Page and template counts must agree with the budget. The stated reason for replacing an existing site (UX, technology, positioning) must agree with what is actually being commissioned.`
 	},
 	packaging: {
 		label: 'Packaging',
-		lens: 'Reason as a packaging design specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: exact SKU count and variants; substrate and finish; whether dielines exist or must be created and who supplies them; print process and printer; mandatory regulatory copy, barcodes and nutritional panels; shelf context and competitor adjacency; sustainability requirements; and territory, since legal copy changes by market.'
+		lens: `Reason as a packaging design specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: exact SKU count and variants; substrate and finish; whether dielines exist or must be created and who supplies them; print process and printer; mandatory regulatory copy, barcodes and nutritional panels; shelf context and competitor adjacency; sustainability requirements; and territory, since legal copy changes by market.`,
+		coherence: `SKU count must agree with budget and timeline; artwork scales linearly and briefs routinely forget it. Sustainability claims must agree with the substrate and print process. Territory must agree with regulatory copy, since mandatory panels differ by market. Shelf standout ambition must agree with any brand-consistency requirement, which usually pulls the other way.`
 	},
 	campaign: {
 		label: 'Campaign',
-		lens: 'Reason as a campaign and advertising specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: the full channel and format list with specs; whether media is booked and to what deadline; asset volume across sizes and cut-downs; usage rights, talent buyouts and stock licensing with their durations; localisation and how many markets; whether there is a single-minded proposition or a list of messages; and how success will actually be measured.'
+		lens: `Reason as a campaign and advertising specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: the full channel and format list with specs; whether media is booked and to what deadline; asset volume across sizes and cut-downs; usage rights, talent buyouts and stock licensing with their durations; localisation and how many markets; whether there is a single-minded proposition or a list of messages; and how success will actually be measured.`,
+		coherence: `The objective must agree with the success metric — awareness objectives measured by conversion are the single most common contradiction in campaign briefs. Channels must agree with asset volume and budget. Usage rights and talent buyout durations must agree with how long the campaign runs. The number of messages must agree with any claim of a single-minded proposition.`
 	},
 	product: {
 		label: 'Physical product',
-		lens: 'Reason as an industrial and product design specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: manufacturing process and tooling cost; materials and finishes; target unit cost and volume; certification and safety compliance for each territory; prototyping stages expected; who owns the CAD and the tooling; and lead times, which usually dominate the timeline.'
+		lens: `Reason as an industrial and product design specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: manufacturing process and tooling cost; materials and finishes; target unit cost and volume; certification and safety compliance for each territory; prototyping stages expected; who owns the CAD and the tooling; and lead times, which usually dominate the timeline.`,
+		coherence: `Target unit cost must agree with materials, finish and manufacturing process. Volume must agree with tooling investment. Certification requirements must agree with the territory list and with the timeline, since testing is slow. Prototyping stages must agree with the launch date.`
 	},
 	other: {
 		label: 'Something else',
-		lens: 'No specific discipline has been stated. Stay general: do not assume a medium, and where the medium would change the answer, ask rather than guess.'
+		lens: `No specific discipline has been stated. Stay general: do not assume a medium, and where the medium would change the answer, ask rather than guess.`,
+		coherence: `No discipline stated, so check general coherence: objectives against success measures, scope against budget, and scope against timeline.`
 	}
 };

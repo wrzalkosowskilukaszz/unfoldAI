@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
-import { projectLens, roleFraming } from '$lib/server/role';
+import { projectCoherence, projectLens, roleFraming } from '$lib/server/role';
 import { SECTION_LABELS_FOR_PROMPT } from '$lib/server/prompts';
 import type { Finding, FindingKind } from '$lib/types';
 
@@ -133,6 +133,13 @@ DISCIPLINE — review it as a specialist in this field. Absences that matter in
 this discipline are findings in their own right; say what is missing, not just
 what is unclear.
 ${projectLens(meta.projectType)}
+
+COHERENCE — these parts of this kind of brief must agree with each other. Check
+each pair against what the brief actually says. Where two parts pull against one
+another, raise it as a "contradiction" finding and name BOTH sides in the detail,
+quoting the brief. A mismatch between two stated things is far more useful than
+observing that one of them is vague.
+${projectCoherence(meta.projectType)}
 
 THE BRIEF
 ${sectionLines}

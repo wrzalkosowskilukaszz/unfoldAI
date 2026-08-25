@@ -8,8 +8,20 @@ that `src/` already tells you.
 
 ## Language
 
-The brand is **surveying**, and the vocabulary is load-bearing rather than
-decorative — it is what makes the name earned. Use it consistently:
+**The brief is still the product.** Surveyvor does not replace the brief; it
+makes the brief *trustworthy*. Resist the pull to reposition this as a
+"project discovery tool" — that demotes the thing users actually keep.
+
+The split that governs all copy:
+
+- **Survey** is the verb — the process, the analysis, what the AI does.
+- **Brief** is the noun — the artifact, the destination, what you leave with.
+
+So: "Survey your project" (action) produces "Your briefs" (things you own).
+Never rename the artifact away from "brief".
+
+The rest of the vocabulary is load-bearing rather than decorative — it is what
+makes the name earned. Use it consistently:
 
 | Term | Means |
 |---|---|
@@ -50,11 +62,16 @@ Two rules that fall out of this:
   dismissed (`status: 'dismissed'`) and why `setFindings` treats a dismissal as
   as deliberate as a confirmation — a re-review that resurrected set-aside
   findings would be exactly the machine we promised not to build.
-- **Project type is a lens, not a template.** `PROJECT_TYPES` in `types.ts`
-  changes what the AI probes for and, crucially, what it flags as *absent* — the
-  diagnostic can only mention a missing dieline if it knows the job is packaging.
-  Don't turn these into pre-filled placeholder text; people delete that and it
-  teaches the model nothing.
+- **Brief templates carry a knowledge model.** `PROJECT_TYPES` in `types.ts`
+  (surfaced as "What kind of brief is this?") holds two things per template:
+  `lens`, what this discipline routinely omits, and `coherence`, which parts of
+  this kind of brief must agree with each other. The second is the valuable one:
+  it lets the survey report "your objective is awareness but your success metric
+  measures conversion" instead of "the success metric is vague". A mismatch
+  between two stated things beats an observation about one vague thing.
+  Never turn these into pre-filled placeholder text — people delete that, and it
+  teaches the model nothing. The code identifier stays `projectType` because it
+  is a persisted field; the UI language is "template".
 
 **The app serves both ends of one handoff**, not one audience. The person
 commissioning the work and the studio delivering it both use it, on the same

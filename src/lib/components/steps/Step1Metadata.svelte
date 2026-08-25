@@ -66,10 +66,10 @@
 	</fieldset>
 
 	<fieldset class="space-y-2.5">
-		<legend class="text-sm font-medium text-ink">What kind of project is it?</legend>
+		<legend class="text-sm font-medium text-ink">What kind of brief is this?</legend>
 		<p class="text-xs text-ink-faint">
-			The AI reviews it as a specialist in that field — and knows what briefs of that
-			kind usually forget.
+			Each template carries a knowledge model: what this kind of brief must establish,
+			and which of its parts have to agree with each other.
 		</p>
 
 		<div class="flex flex-wrap gap-2">

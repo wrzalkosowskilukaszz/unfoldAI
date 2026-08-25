@@ -119,7 +119,7 @@
 					<button
 						type="button"
 						onclick={() => (view = 'gallery')}
-						aria-label="All projects"
+						aria-label="All briefs"
 						class="-ml-1.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink-soft active:bg-ink/[0.06]"
 					>
 						<ChevronLeft size={20} />
@@ -177,7 +177,7 @@
 					class="mt-7 flex items-center gap-1 text-xs font-medium text-ink-faint transition-colors hover:text-accent"
 				>
 					<ChevronLeft size={13} />
-					All projects
+					All briefs
 				</button>
 
 				<h2

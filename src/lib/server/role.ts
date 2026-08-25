@@ -23,3 +23,10 @@ export function projectLens(value: unknown): string {
 	if (!(value in PROJECT_TYPES)) return PROJECT_TYPES.other.lens;
 	return PROJECT_TYPES[value as ProjectType].lens;
 }
+
+/** The template's knowledge model: which parts of this brief must agree. */
+export function projectCoherence(value: unknown): string {
+	if (typeof value !== 'string') return PROJECT_TYPES.other.coherence;
+	if (!(value in PROJECT_TYPES)) return PROJECT_TYPES.other.coherence;
+	return PROJECT_TYPES[value as ProjectType].coherence;
+}

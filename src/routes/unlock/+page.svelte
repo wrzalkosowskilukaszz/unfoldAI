@@ -16,7 +16,7 @@
 </script>
 
 <svelte:head>
-	<title>Unfold AI</title>
+	<title>Surveyvor</title>
 </svelte:head>
 
 <div class="flex min-h-screen flex-col items-center justify-center px-6">
@@ -80,7 +80,7 @@
 		<p class="mt-6 border-t border-border pt-5 text-sm text-ink-soft">
 			Don't have access yet?
 			<a
-				href="mailto:{ACCESS_EMAIL}?subject=Unfold%20AI%20—%20early%20access&body=Hi%2C%20I%27d%20like%20early%20access%20to%20Unfold%20AI.%0A%0AWhat%20I%27d%20use%20it%20for%3A"
+				href="mailto:{ACCESS_EMAIL}?subject=Surveyvor%20—%20early%20access&body=Hi%2C%20I%27d%20like%20early%20access%20to%20Surveyvor.%0A%0AWhat%20I%27d%20use%20it%20for%3A"
 				class="font-semibold text-accent underline-offset-2 hover:underline"
 			>
 				Request early access

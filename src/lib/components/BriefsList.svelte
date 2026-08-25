@@ -136,8 +136,8 @@
 <div class="space-y-6">
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<div>
-			<h2 class="font-display text-xl font-semibold text-ink">My Briefs</h2>
-			<p class="mt-1 text-sm text-ink-soft">Pick up where you left off, or start something new.</p>
+			<h2 class="font-display text-xl font-semibold text-ink">Your projects</h2>
+			<p class="mt-1 text-sm text-ink-soft">Pick up where you left off, or survey something new.</p>
 		</div>
 		<!-- min-h-11 keeps both at the 44px Apple HIG / WCAG 2.5.5 target on touch. -->
 		<div class="flex gap-2">
@@ -162,7 +162,7 @@
 				class="flex min-h-11 items-center gap-1.5 rounded-full bg-accent px-4 text-xs font-semibold text-on-accent transition hover:opacity-90 active:scale-[0.98] lg:min-h-0 lg:py-1.5"
 			>
 				<Plus size={15} />
-				New Brief
+				New project
 			</button>
 		</div>
 	</div>

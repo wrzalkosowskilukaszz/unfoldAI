@@ -38,7 +38,7 @@
 </script>
 
 <svelte:head>
-	<title>Unfold AI</title>
+	<title>Surveyvor</title>
 </svelte:head>
 
 {#if view === 'gallery' || view === 'import'}
@@ -73,11 +73,11 @@
 					<h1
 						class="font-display text-[2.05rem] leading-[1.06] font-semibold tracking-[-0.03em] text-ink sm:text-[2.9rem] sm:leading-[1.04] sm:tracking-[-0.035em] lg:text-[3.4rem]"
 					>
-						Figure out what the<br class="hidden sm:block" /> project actually is
+						Survey the project<br class="hidden sm:block" /> before you build it
 					</h1>
 					<p class="mt-4 max-w-lg text-[0.98rem] leading-relaxed text-ink-soft sm:mt-5 sm:text-[1.02rem]">
-						Turn a messy conversation into a brief everyone agrees on — surfacing what's
-						vague, contradictory or still unknown before anyone starts designing.
+						Surveyvor uncovers assumptions, contradictions, missing information and
+						unresolved decisions — before they become expensive problems.
 					</p>
 				</div>
 
@@ -119,7 +119,7 @@
 					<button
 						type="button"
 						onclick={() => (view = 'gallery')}
-						aria-label="All briefs"
+						aria-label="All projects"
 						class="-ml-1.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink-soft active:bg-ink/[0.06]"
 					>
 						<ChevronLeft size={20} />
@@ -177,7 +177,7 @@
 					class="mt-7 flex items-center gap-1 text-xs font-medium text-ink-faint transition-colors hover:text-accent"
 				>
 					<ChevronLeft size={13} />
-					All briefs
+					All projects
 				</button>
 
 				<h2

@@ -11,7 +11,7 @@ import { env } from '$env/dynamic/private';
  * Set APP_PASSWORD to enable. Leave it unset and the app stays open, which is
  * what you want locally.
  */
-export const AUTH_COOKIE = 'unfold_access';
+export const AUTH_COOKIE = 'surveyvor_access';
 
 export function isAuthConfigured(): boolean {
 	return Boolean(env.APP_PASSWORD?.trim());
@@ -23,7 +23,7 @@ export function isAuthConfigured(): boolean {
  */
 export function sessionToken(): string {
 	return createHash('sha256')
-		.update(`unfold-access-v1:${env.APP_PASSWORD ?? ''}`)
+		.update(`surveyvor-access-v1:${env.APP_PASSWORD ?? ''}`)
 		.digest('hex');
 }
 

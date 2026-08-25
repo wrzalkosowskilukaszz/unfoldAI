@@ -11,18 +11,18 @@
 	const HOW = [
 		{
 			icon: PenLine,
-			title: 'Dump what you have',
-			body: "Messy notes are fine, whether you're commissioning the work or doing it. Stuck? The AI interviews you one question at a time."
+			title: 'Give it the mess',
+			body: "Meeting notes, client emails, half-formed ideas. Surveyvor doesn't need a finished brief — that's the point."
 		},
 		{
 			icon: ScanSearch,
-			title: 'It finds what you missed',
-			body: 'Reads the whole project and flags contradictions, vague statements and what it had to assume.'
+			title: 'It surveys the terrain',
+			body: "It marks what's established, what's assumed, what conflicts and what nobody has decided — instead of quietly filling the gaps."
 		},
 		{
 			icon: FileCheck,
-			title: 'Leave with both',
-			body: 'A brief your team can act on — and an honest list of what nobody has settled yet.'
+			title: 'Start on solid ground',
+			body: 'Answer what matters, lock the decisions, and leave with a brief that is the output of alignment rather than the start of it.'
 		}
 	];
 </script>
@@ -30,11 +30,11 @@
 <section class="space-y-10">
 	<div class="space-y-5">
 		<div>
-			<h2 class="font-display text-xl font-semibold text-ink">Start your first brief</h2>
+			<h2 class="font-display text-xl font-semibold text-ink">Survey your first project</h2>
 			<!-- max-w-xl, not max-w-md: the sentence fits one line on desktop instead
 			     of orphaning its last word onto a second. -->
 			<p class="mt-1 max-w-xl text-sm text-ink-soft">
-				Nothing here yet. Write a brief from scratch, or bring one you've been sent.
+				Nothing here yet. Start from scratch, or bring the mess you've already got.
 			</p>
 		</div>
 
@@ -45,7 +45,7 @@
 				class="flex min-h-12 items-center gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-on-accent transition hover:-translate-y-0.5 active:scale-[0.98]"
 			>
 				<Plus size={17} />
-				Write a brief
+				Survey your project
 			</button>
 			<button
 				type="button"
@@ -53,7 +53,7 @@
 				class="flex min-h-12 items-center gap-2 rounded-full border border-border bg-surface px-5 text-sm font-semibold text-ink shadow-sm transition hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
 			>
 				<Upload size={16} class="text-accent" />
-				I was sent one
+				I have a brief already
 			</button>
 		</div>
 	</div>

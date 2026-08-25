@@ -68,10 +68,10 @@ export const FINDING_META: Record<
 	FindingKind,
 	{ label: string; tone: string; wash: string; actionable: boolean }
 > = {
-	clear: { label: 'Clear', tone: 'var(--color-clear)', wash: 'var(--color-clear-wash)', actionable: false },
+	clear: { label: 'Marker', tone: 'var(--color-clear)', wash: 'var(--color-clear-wash)', actionable: false },
 	attention: { label: 'Vague', tone: 'var(--color-attention)', wash: 'var(--color-attention-wash)', actionable: true },
-	contradiction: { label: 'Contradiction', tone: 'var(--color-contradiction)', wash: 'var(--color-contradiction-wash)', actionable: true },
-	missing: { label: 'Missing', tone: 'var(--color-unknown)', wash: 'var(--color-unknown-wash)', actionable: true },
+	contradiction: { label: 'Tension', tone: 'var(--color-contradiction)', wash: 'var(--color-contradiction-wash)', actionable: true },
+	missing: { label: 'Unknown', tone: 'var(--color-unknown)', wash: 'var(--color-unknown-wash)', actionable: true },
 	assumption: { label: 'Assumption', tone: 'var(--color-accent)', wash: 'var(--color-accent-wash)', actionable: true },
 	why: { label: 'Why?', tone: 'var(--color-accent)', wash: 'var(--color-accent-wash)', actionable: true }
 };
@@ -109,7 +109,7 @@ export const STEP_LABELS = [
 	'Audience',
 	'Deliverables',
 	'Constraints',
-	'Review',
+	'Survey',
 	'Export'
 ];
 

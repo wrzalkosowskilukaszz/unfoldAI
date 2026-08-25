@@ -1,8 +1,31 @@
-# Unfold AI — working notes
+# Surveyvor — working notes
 
 Context for anyone (human or Claude) picking this up. Only things that are **not
 obvious from reading the code** — no file inventories, no architecture diagrams
 that `src/` already tells you.
+
+---
+
+## Language
+
+The brand is **surveying**, and the vocabulary is load-bearing rather than
+decorative — it is what makes the name earned. Use it consistently:
+
+| Term | Means |
+|---|---|
+| **Survey** | the AI's analysis pass (step 6) |
+| **Findings** | what the survey turned up |
+| **Marker** | something firmly established (`kind: 'clear'`) |
+| **Tension** | two parts of the project disagree (`kind: 'contradiction'`) |
+| **Unknown** | not established yet (`kind: 'missing'`) |
+| **Assumption** | inferred, never confirmed |
+| **Terrain** | the project as a whole |
+
+Never revert to generic SaaS words — "AI insights", "recommendations",
+"optimisation". The positioning is explicitly anti-that: *Claude can write your
+brief; Surveyvor interrogates it.*
+
+Restore point for the pre-rename app: `git checkout finished-unfold`.
 
 ---
 
@@ -99,8 +122,9 @@ generous whitespace; motion should feel physical, never linear easing.
 - `isStepComplete()` is **content-based, not positional**. An empty brief must
   never show completion checkmarks.
 - The localStorage migration chain
-  (`unfold-ai-briefs-v1` ← `briefflow-ai-briefs-v1` ← `briefflow-ai-state-v1`)
-  must be preserved. Existing users lose everything if you drop a link.
+  (`surveyvor-briefs-v1` ← `unfold-ai-briefs-v1` ← `briefflow-ai-briefs-v1`
+  ← `briefflow-ai-state-v1`) must be preserved. Existing users lose everything
+  if you drop a link. The app has been renamed twice; assume it will happen again.
 
 ---
 

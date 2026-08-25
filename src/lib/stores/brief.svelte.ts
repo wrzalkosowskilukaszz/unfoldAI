@@ -11,8 +11,10 @@ import {
 	type SectionStatus
 } from '$lib/types';
 
-const STORAGE_KEY = 'unfold-ai-briefs-v1';
-/** Pre-rename multi-brief store. Read once, then migrated to STORAGE_KEY. */
+const STORAGE_KEY = 'surveyvor-briefs-v1';
+/** Unfold AI era. Read once, then migrated to STORAGE_KEY. */
+const LEGACY_UNFOLD_KEY = 'unfold-ai-briefs-v1';
+/** BriefFlow era. Read once, then migrated to STORAGE_KEY. */
 const LEGACY_BRIEFS_KEY = 'briefflow-ai-briefs-v1';
 /** Original single-brief store, from before the My Briefs gallery existed. */
 const LEGACY_SINGLE_KEY = 'briefflow-ai-state-v1';
@@ -112,6 +114,11 @@ class BriefStore {
 	private load() {
 		// Current store, then each older format in turn — briefs survive the renames.
 		if (this.loadBriefsFormat(STORAGE_KEY)) return;
+		if (this.loadBriefsFormat(LEGACY_UNFOLD_KEY)) {
+			localStorage.removeItem(LEGACY_UNFOLD_KEY);
+			this.persist();
+			return;
+		}
 		if (this.loadBriefsFormat(LEGACY_BRIEFS_KEY)) {
 			localStorage.removeItem(LEGACY_BRIEFS_KEY);
 			this.persist();

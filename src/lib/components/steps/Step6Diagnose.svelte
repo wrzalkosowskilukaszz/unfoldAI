@@ -107,7 +107,7 @@
 		<div>
 			<h2 class="font-display text-xl font-semibold text-ink">What's still unknown</h2>
 			<p class="mt-1 text-sm text-ink-soft">
-				Before you export, let's find what this brief hasn't settled yet.
+				Surveyvor read the whole project. Here is the terrain — what's established, what's assumed, and what nobody has settled.
 			</p>
 		</div>
 		{#if hasReviewed}
@@ -122,7 +122,7 @@
 					Reviewing...
 				{:else}
 					<RefreshCw size={13} class="text-accent" />
-					Review again
+					Survey again
 				{/if}
 			</button>
 		{/if}
@@ -183,10 +183,10 @@
 		<div
 			class="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-border bg-surface-alt/40 px-4 py-3 text-xs"
 		>
-			<span class="font-semibold text-ink">{findings.length} areas reviewed</span>
+			<span class="font-semibold text-ink">{findings.length} areas surveyed</span>
 			<span class="flex items-center gap-1.5 text-ink-soft">
 				<span class="h-1.5 w-1.5 rounded-full" style="background: var(--color-clear)"></span>
-				{counts.clear} clear
+				{counts.clear} marked
 			</span>
 			<span class="flex items-center gap-1.5 text-ink-soft">
 				<span class="h-1.5 w-1.5 rounded-full" style="background: var(--color-attention)"></span>
@@ -234,7 +234,7 @@
 
 		{#if sortedOpen.length === 0 && locked.length + dismissed.length > 0}
 			<p class="text-center text-sm text-clear">
-				Everything raised has been settled. This brief is ready to export.
+				Survey complete. Every finding has been settled or set aside — this project is ready to build on.
 			</p>
 		{/if}
 	{/if}

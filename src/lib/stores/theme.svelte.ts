@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 
-const STORAGE_KEY = 'unfold-ai-theme';
+const STORAGE_KEY = 'surveyvor-theme';
+const LEGACY_THEME_KEY = 'unfold-ai-theme';
 
 export type Theme = 'light' | 'dark';
 
@@ -9,7 +10,7 @@ class ThemeStore {
 
 	constructor() {
 		if (!browser) return;
-		const saved = localStorage.getItem(STORAGE_KEY);
+		const saved = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_THEME_KEY);
 		if (saved === 'light' || saved === 'dark') {
 			this.current = saved;
 		} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {

@@ -1,4 +1,4 @@
-# Unfold AI
+# Surveyvor
 
 Turns a messy client conversation into a brief everyone agrees on — surfacing what's
 vague, contradictory or still unknown before anyone starts designing.

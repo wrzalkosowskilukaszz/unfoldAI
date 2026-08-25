@@ -2,6 +2,7 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
 import { tooLong } from '$lib/server/rateLimit';
+import { logUsage } from '$lib/server/usage';
 
 const SYSTEM_PROMPT = `You are a senior creative strategist writing the final version of a client creative brief. You've been given structured notes from each section of the brief-building process. Your job is to weave them into one cohesive, warm, professional document that reads like it was thoughtfully written by a human strategist — not assembled from bullet points.
 
@@ -90,6 +91,8 @@ Write the final, polished creative brief now.`;
 		console.error('Anthropic API error compiling brief', err);
 		throw error(502, 'Failed to reach Claude. Please try again.');
 	}
+
+	logUsage('compile-brief', message.usage);
 
 	const polished = message.content
 		.filter((block) => block.type === 'text')

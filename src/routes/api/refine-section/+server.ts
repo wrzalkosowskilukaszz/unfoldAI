@@ -2,6 +2,7 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
 import { tooLong } from '$lib/server/rateLimit';
+import { logUsage } from '$lib/server/usage';
 import { CREATIVE_STRATEGIST_SYSTEM_PROMPT, SECTION_FRAMING, VALID_SECTIONS } from '$lib/server/prompts';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -46,6 +47,8 @@ export const POST: RequestHandler = async ({ request }) => {
 		console.error('Anthropic API error refining section', sectionName, err);
 		throw error(502, 'Failed to reach Claude. Please try again.');
 	}
+
+	logUsage('refine-section', message.usage);
 
 	const refined = message.content
 		.filter((block) => block.type === 'text')

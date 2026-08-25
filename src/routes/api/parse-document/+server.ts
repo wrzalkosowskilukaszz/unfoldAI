@@ -2,6 +2,7 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
 import { tooLong } from '$lib/server/rateLimit';
+import { logUsage } from '$lib/server/usage';
 import type { SectionKey } from '$lib/types';
 
 const SYSTEM_PROMPT = `You are a creative strategist sorting an existing, messy client brief into the four sections of a structured brief. The document was written by a human in whatever order made sense to them; your job is to work out what belongs where.
@@ -63,6 +64,8 @@ export const POST: RequestHandler = async ({ request }) => {
 		console.error('Anthropic API error parsing document', err);
 		throw error(502, 'Failed to reach the AI. Please try again.');
 	}
+
+	logUsage('parse-document', message.usage);
 
 	if (message.stop_reason === 'max_tokens') {
 		throw error(502, 'That document was too dense to sort in one pass. Try splitting it up.');

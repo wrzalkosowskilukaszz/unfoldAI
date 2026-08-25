@@ -2,6 +2,7 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
 import { tooLong } from '$lib/server/rateLimit';
+import { logUsage } from '$lib/server/usage';
 import { SECTION_LABELS_FOR_PROMPT, VALID_SECTIONS } from '$lib/server/prompts';
 import { MAX_HELP_QUESTIONS, type HelpQuestion } from '$lib/types';
 
@@ -122,6 +123,8 @@ Ask the single most useful next question, or finish if you have enough.`;
 		console.error('Anthropic API error generating next question', sectionName, err);
 		throw error(502, 'Failed to reach the AI. Please try again.');
 	}
+
+	logUsage('next-question', message.usage);
 
 	const rawText = message.content
 		.filter((block) => block.type === 'text')

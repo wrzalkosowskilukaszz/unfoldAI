@@ -2,6 +2,7 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
 import { tooLong } from '$lib/server/rateLimit';
+import { logUsage } from '$lib/server/usage';
 import { SECTION_LABELS_FOR_PROMPT } from '$lib/server/prompts';
 import type { Finding, FindingKind } from '$lib/types';
 
@@ -150,6 +151,8 @@ Review this project and return your findings.`;
 		console.error('Anthropic API error reviewing brief', err);
 		throw error(502, 'Failed to reach the AI. Please try again.');
 	}
+
+	logUsage('review-brief', message.usage);
 
 	if (message.stop_reason === 'max_tokens') {
 		console.error('Review hit the token ceiling before finishing its JSON.');

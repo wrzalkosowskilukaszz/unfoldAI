@@ -12,7 +12,7 @@
 		{
 			icon: PenLine,
 			title: 'Dump what you have',
-			body: 'Messy notes are fine. Stuck on a section? The AI interviews you one question at a time.'
+			body: "Messy notes are fine, whether you're commissioning the work or doing it. Stuck? The AI interviews you one question at a time."
 		},
 		{
 			icon: ScanSearch,
@@ -34,7 +34,7 @@
 			<!-- max-w-xl, not max-w-md: the sentence fits one line on desktop instead
 			     of orphaning its last word onto a second. -->
 			<p class="mt-1 max-w-xl text-sm text-ink-soft">
-				Nothing here yet. Begin from scratch, or bring a brief you've already written.
+				Nothing here yet. Write a brief from scratch, or bring one you've been sent.
 			</p>
 		</div>
 
@@ -45,7 +45,7 @@
 				class="flex min-h-12 items-center gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-on-accent transition hover:-translate-y-0.5 active:scale-[0.98]"
 			>
 				<Plus size={17} />
-				New brief
+				Write a brief
 			</button>
 			<button
 				type="button"
@@ -53,7 +53,7 @@
 				class="flex min-h-12 items-center gap-2 rounded-full border border-border bg-surface px-5 text-sm font-semibold text-ink shadow-sm transition hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
 			>
 				<Upload size={16} class="text-accent" />
-				I already have one
+				I was sent one
 			</button>
 		</div>
 	</div>

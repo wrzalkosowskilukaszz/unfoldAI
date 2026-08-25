@@ -25,7 +25,7 @@ function emptySection(): SectionState {
 }
 
 function emptyMeta(): ProjectMeta {
-	return { projectName: '', clientName: '', briefDate: '', launchDate: '' };
+	return { projectName: '', clientName: '', briefDate: '', launchDate: '', role: null };
 }
 
 function emptySections(): Record<SectionKey, SectionState> {
@@ -63,6 +63,8 @@ function normalizeBrief(brief: SavedBrief): SavedBrief {
 	if (!Array.isArray(brief.findings)) brief.findings = [];
 	if (brief.reviewedAt === undefined) brief.reviewedAt = null;
 	if (brief.polishedBrief === undefined) brief.polishedBrief = null;
+	// Briefs written before the role question existed simply never answered it.
+	if (brief.meta && brief.meta.role === undefined) brief.meta.role = null;
 	for (const key of SECTION_ORDER) {
 		if (!brief.sections[key]) brief.sections[key] = emptySection();
 	}

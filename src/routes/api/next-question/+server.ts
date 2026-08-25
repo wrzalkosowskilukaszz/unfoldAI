@@ -3,13 +3,14 @@ import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
+import { roleFraming } from '$lib/server/role';
 import { SECTION_LABELS_FOR_PROMPT, VALID_SECTIONS } from '$lib/server/prompts';
 import { MAX_HELP_QUESTIONS, type HelpQuestion } from '$lib/types';
 
 /** Prior exchanges carried in from other sections — capped so the prompt stays lean. */
 const MAX_LEARNED_CONTEXT = 12;
 
-const SYSTEM_PROMPT = `You are a warm, perceptive creative strategist helping a client who feels stuck articulate part of a creative brief. You interview them the way a good designer does on a discovery call: one small question at a time, actually listening to each answer and letting it shape what you ask next.
+const SYSTEM_PROMPT = `You are a warm, perceptive creative strategist helping someone who feels stuck articulate part of a creative brief. You interview them the way a good designer does on a discovery call: one small question at a time, actually listening to each answer and letting it shape what you ask next.
 
 Rules:
 1. Ask exactly ONE question per response.
@@ -28,6 +29,7 @@ interface RequestBody {
 	otherSections?: Record<string, string>;
 	answered?: { question: string; answer: string; skipped?: boolean }[];
 	learnedContext?: { section: string; question: string; answer: string }[];
+	role?: unknown;
 }
 
 function stripCodeFences(text: string): string {
@@ -94,14 +96,16 @@ export const POST: RequestHandler = async ({ request }) => {
 		)
 		.join('\n\n');
 
-	const userPrompt = `The client is filling out the "${sectionLabel}" section of a creative brief and isn't sure how to answer.
+	const userPrompt = `Someone is filling out the "${sectionLabel}" section of a creative brief and isn't sure how to answer.
+
+Who they are: ${roleFraming(body.role)}
 
 What they've written for this section so far (may be empty): "${(sectionRaw ?? '').trim() || '(nothing yet)'}"
 
 What they've written in other sections of this brief:
 ${contextLines || '(nothing else provided yet)'}
 
-What you've already learned about this client from interviewing them on earlier sections:
+What you've already learned about this project from interviewing them on earlier sections:
 ${learnedLines || '(this is the first section you have interviewed them on)'}
 
 This interview so far (${answered.length} of a maximum ${MAX_HELP_QUESTIONS} questions):

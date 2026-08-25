@@ -25,6 +25,14 @@ Two rules that fall out of this:
   least one "clear" finding mandatory. A tool that only ever reports problems
   gets closed. Don't remove that rule.
 
+**The app serves both ends of one handoff**, not one audience. The person
+commissioning the work and the studio delivering it both use it, on the same
+document. `ProjectMeta.role` (`commissioning` | `delivering`, null until asked)
+drives labels, placeholders and the framing handed to every prompt — most
+visibly the organisation field, which means "someone else's company" to a
+designer and "my own" to a client. Never write copy that assumes an agency
+reader; that assumption was baked in once and had to be unpicked.
+
 Local-only by design: no accounts, no server-side persistence. Any feature that
 needs multiplayer (shared review, comments, presence) contradicts the
 architecture — say so rather than half-building it.

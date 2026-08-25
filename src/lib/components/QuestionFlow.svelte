@@ -84,7 +84,8 @@
 					sectionRaw: briefStore.sections[sectionKey].raw,
 					otherSections,
 					answered: answers,
-					learnedContext: briefStore.helpHistory
+					learnedContext: briefStore.helpHistory,
+					role: briefStore.meta.role
 				})
 			});
 

@@ -31,6 +31,7 @@
 				body: JSON.stringify({
 					sectionName: sectionKey,
 					rawInput: briefStore.sections[sectionKey].raw,
+					role: briefStore.meta.role,
 					regenerate
 				})
 			});

@@ -3,10 +3,11 @@ import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
+import { roleFraming } from '$lib/server/role';
 import { CREATIVE_STRATEGIST_SYSTEM_PROMPT, SECTION_FRAMING, VALID_SECTIONS } from '$lib/server/prompts';
 
 export const POST: RequestHandler = async ({ request }) => {
-	let body: { sectionName?: string; rawInput?: string; regenerate?: boolean };
+	let body: { sectionName?: string; rawInput?: string; regenerate?: boolean; role?: unknown };
 	try {
 		body = await request.json();
 	} catch {
@@ -31,7 +32,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		? '\n\nThis is a regeneration request — produce a fresh alternative pass, structurally distinct from a typical first attempt, while still following all rules above.'
 		: '';
 
-	const userPrompt = `Section: ${sectionName}\n\n${framing}${regenerateNote}\n\nRaw client notes to transform:\n"""\n${rawInput}\n"""`;
+	const userPrompt = `Section: ${sectionName}\n\nWho is writing this: ${roleFraming(body.role)}\n\n${framing}${regenerateNote}\n\nRaw notes to transform:\n"""\n${rawInput}\n"""`;
 
 	let message;
 	try {

@@ -75,7 +75,7 @@
 						Figure out what the<br class="hidden sm:block" /> project actually is
 					</h1>
 					<p class="mt-4 max-w-lg text-[0.98rem] leading-relaxed text-ink-soft sm:mt-5 sm:text-[1.02rem]">
-						Turn a messy client conversation into a brief everyone agrees on — surfacing what's
+						Turn a messy conversation into a brief everyone agrees on — surfacing what's
 						vague, contradictory or still unknown before anyone starts designing.
 					</p>
 				</div>

@@ -79,6 +79,8 @@ export interface ProjectMeta {
 	clientName: string;
 	briefDate: string;
 	launchDate: string;
+	/** Null until the person says which end of the handoff they are on. */
+	role: BriefRole | null;
 }
 
 export interface SavedBrief {
@@ -122,4 +124,44 @@ export const SECTION_PLACEHOLDERS: Record<SectionKey, string> = {
 	audience: 'Paste raw notes on who this is for, what they care about, and the key message...',
 	deliverables: 'Paste raw notes on look/feel, tone, references, and the list of assets needed...',
 	constraints: 'Paste raw notes on budget, timeline, brand rules, legal/compliance, and must-haves...'
+};
+
+/**
+ * Which end of the handoff the person filling this in is on.
+ *
+ * The same brief reads differently depending on whether you are commissioning
+ * the work or doing it: "Client / Brand" means someone else's company to a
+ * designer, and your own company to the person hiring one. Labels, placeholders
+ * and the AI's framing all key off this rather than assuming an agency reader.
+ */
+export type BriefRole = 'commissioning' | 'delivering';
+
+export interface RoleCopy {
+	/** Shown on the chooser. */
+	label: string;
+	hint: string;
+	/** What the organisation field is actually called for this role. */
+	orgLabel: string;
+	orgPlaceholder: string;
+	/** Handed to the model so it addresses the right person. */
+	promptFraming: string;
+}
+
+export const ROLE_COPY: Record<BriefRole, RoleCopy> = {
+	commissioning: {
+		label: 'I need the work done',
+		hint: "You're briefing a designer, studio or agency.",
+		orgLabel: 'Your company or brand',
+		orgPlaceholder: 'e.g. Acme Corp',
+		promptFraming:
+			'The person writing this is the CLIENT — they are commissioning the work and will hand this brief to a designer, studio or agency. Address them directly as the person who owns the project. Never refer to "the client" in the third person; they are the client. Do not assume they know design vocabulary.'
+	},
+	delivering: {
+		label: "I'm doing the work",
+		hint: "You're the designer, studio or agency.",
+		orgLabel: 'Client / Brand',
+		orgPlaceholder: 'e.g. Acme Corp',
+		promptFraming:
+			'The person writing this is the DESIGNER, studio or agency who will deliver the work. They are writing up what a client told them, so the notes may be second-hand. Refer to "the client" in the third person, and treat design vocabulary as shared ground.'
+	}
 };

@@ -22,9 +22,11 @@
 				>
 					<span
 						class="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-md text-[0.66rem] font-semibold transition-colors
-							{done ? 'bg-ink text-background' : ''}
-							{active ? 'bg-accent text-on-accent' : ''}
-							{!done && !active ? 'border border-border-strong text-ink-faint' : ''}"
+							{active
+							? 'bg-accent text-on-accent'
+							: done
+								? 'bg-ink text-background'
+								: 'border border-border-strong text-ink-faint'}"
 					>
 						{#if done}
 							<Check size={12} strokeWidth={3} />

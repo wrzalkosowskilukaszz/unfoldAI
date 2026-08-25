@@ -45,9 +45,11 @@
 
 					<span
 						class="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[0.72rem] font-semibold transition-all duration-300
-							{done ? 'bg-ink text-background group-hover:scale-110' : ''}
-							{active ? 'bg-accent text-on-accent' : ''}
-							{!done && !active ? 'border border-border-strong bg-surface text-ink-faint' : ''}"
+							{active
+							? 'bg-accent text-on-accent'
+							: done
+								? 'bg-ink text-background group-hover:scale-110'
+								: 'border border-border-strong bg-surface text-ink-faint'}"
 					>
 						{#if active}
 							<span

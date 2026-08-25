@@ -2,7 +2,7 @@
 	import { ScanSearch, Loader2, AlertTriangle, RefreshCw, Sparkles } from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
 	import FindingCard from '$lib/components/FindingCard.svelte';
-	import SpectralOrb from '$lib/components/SpectralOrb.svelte';
+	import CubeShifter from '$lib/components/CubeShifter.svelte';
 	import type { Finding } from '$lib/types';
 
 	let status = $state<'idle' | 'loading' | 'error'>('idle');
@@ -141,7 +141,7 @@
 		<div
 			class="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border-strong bg-surface-alt/30 px-6 py-14 text-center"
 		>
-			<SpectralOrb size={128} chaos={0.72} strokeWidth={2} />
+			<CubeShifter size={132} />
 			{#key noteIndex}
 				<p class="rise text-sm font-medium text-ink">{PROGRESS_NOTES[noteIndex]}</p>
 			{/key}

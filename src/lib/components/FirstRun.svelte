@@ -31,7 +31,9 @@
 	<div class="space-y-5">
 		<div>
 			<h2 class="font-display text-xl font-semibold text-ink">Start your first brief</h2>
-			<p class="mt-1 max-w-md text-sm text-ink-soft">
+			<!-- max-w-xl, not max-w-md: the sentence fits one line on desktop instead
+			     of orphaning its last word onto a second. -->
+			<p class="mt-1 max-w-xl text-sm text-ink-soft">
 				Nothing here yet. Begin from scratch, or bring a brief you've already written.
 			</p>
 		</div>
@@ -59,15 +61,17 @@
 	<div class="grid gap-x-8 gap-y-6 border-t border-border pt-8 sm:grid-cols-3">
 		{#each HOW as item, i}
 			<div class="rise" style="animation-delay: {i * 70}ms">
-				<div class="flex items-center gap-2">
+				<div class="flex items-center gap-2.5">
 					<span
-						class="flex h-7 w-7 items-center justify-center rounded-full bg-accent-wash text-accent"
+						class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-wash text-accent"
 					>
 						<item.icon size={15} />
 					</span>
 					<h3 class="font-display text-sm font-semibold text-ink">{item.title}</h3>
 				</div>
-				<p class="mt-2 text-sm leading-relaxed text-ink-soft">{item.body}</p>
+				<!-- Indented to the title's text edge (icon 28px + 10px gap), so the
+				     body reads as one column rather than stepping back under the icon. -->
+				<p class="mt-2 pl-[2.375rem] text-sm leading-relaxed text-ink-soft">{item.body}</p>
 			</div>
 		{/each}
 	</div>

@@ -336,9 +336,16 @@
 		></button>
 
 		<div
-			class="safe-bottom rise absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-border bg-surface p-3"
+			class="safe-bottom rise absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-border bg-surface px-3 pt-2 pb-3"
 		>
-			<p class="truncate px-3 pt-2 pb-3 text-sm font-semibold text-ink">{sheet.name}</p>
+			<!-- Grab handle: the usual signal that a sheet is dismissable by dragging. -->
+			<div class="mx-auto mb-1 h-1 w-9 rounded-full bg-border-strong"></div>
+
+			<p class="truncate border-b border-border px-3 pt-2 pb-3 text-sm font-semibold text-ink">
+				{sheet.name}
+			</p>
+
+			<div class="h-1.5"></div>
 
 			<button
 				type="button"
@@ -420,27 +427,38 @@
 			class="absolute inset-0 bg-ink/40 backdrop-blur-[2px]"
 		></button>
 
+		<!--
+			Icon and title share a centred row; the body then aligns to the title's
+			text edge rather than hanging under the icon. Equal padding all round,
+			with the actions separated by a rule so they read as a distinct region.
+		-->
 		<div
-			class="rise safe-bottom relative w-full max-w-sm rounded-2xl border border-border bg-surface p-5 elevated"
+			class="rise safe-bottom elevated relative w-full max-w-md overflow-hidden rounded-2xl border border-border bg-surface"
 		>
-			<div class="flex items-start gap-3">
-				<span
-					class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-contradiction-wash text-contradiction"
-				>
-					<Trash2 size={18} />
-				</span>
-				<div class="min-w-0">
-					<h2 id="delete-dialog-title" class="font-display text-base font-semibold text-ink">
+			<div class="p-6 sm:p-7">
+				<div class="flex items-center gap-3.5">
+					<span
+						class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-contradiction-wash text-contradiction"
+					>
+						<Trash2 size={19} />
+					</span>
+					<h2
+						id="delete-dialog-title"
+						class="font-display text-[1.05rem] leading-tight font-semibold text-ink"
+					>
 						Delete this brief?
 					</h2>
-					<p class="mt-1 text-sm leading-relaxed text-ink-soft">
-						<span class="font-medium text-ink">{pendingDelete.name}</span> and everything in it will
-						be removed. This can't be undone.
-					</p>
 				</div>
+
+				<p class="mt-4 text-sm leading-relaxed text-ink-soft sm:pl-[3.625rem]">
+					<span class="font-medium text-ink">{pendingDelete.name}</span> and everything in it will be
+					removed. This can't be undone.
+				</p>
 			</div>
 
-			<div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+			<div
+				class="flex flex-col-reverse gap-2.5 border-t border-border bg-surface-alt/40 px-6 py-4 sm:flex-row sm:justify-end sm:px-7"
+			>
 				<button
 					type="button"
 					onclick={() => (pendingDelete = null)}
@@ -451,7 +469,7 @@
 				<button
 					type="button"
 					onclick={confirmDelete}
-					class="flex min-h-11 items-center justify-center rounded-full bg-contradiction px-5 text-sm font-semibold text-white transition hover:opacity-90 active:scale-[0.98]"
+					class="flex min-h-11 items-center justify-center rounded-full bg-contradiction px-5 text-sm font-semibold text-on-contradiction transition hover:opacity-90 active:scale-[0.98]"
 				>
 					Delete
 				</button>

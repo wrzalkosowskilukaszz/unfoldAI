@@ -30,6 +30,7 @@
 	--c-attention-wash: #fbf3e2;
 	--c-contradiction: #c0392b;
 	--c-contradiction-wash: #fceeec;
+	--c-on-contradiction: #ffffff;
 	--c-unknown: #64748b;
 	--c-unknown-wash: #f1f3f6;
 
@@ -64,6 +65,9 @@
 	--c-attention-wash: #2c2110;
 	--c-contradiction: #ff6b5a;
 	--c-contradiction-wash: #2e1715;
+	/* Same trap as the accent: white on this coral is only 2.80:1. Dark ink
+	   on it reaches 6.60:1, so the destructive button flips its label instead. */
+	--c-on-contradiction: #1c0f0d;
 	--c-unknown: #8b93a7;
 	--c-unknown-wash: #1c1f28;
 
@@ -96,6 +100,7 @@
 	--color-attention-wash: var(--c-attention-wash);
 	--color-contradiction: var(--c-contradiction);
 	--color-contradiction-wash: var(--c-contradiction-wash);
+	--color-on-contradiction: var(--c-on-contradiction);
 	--color-unknown: var(--c-unknown);
 	--color-unknown-wash: var(--c-unknown-wash);
 

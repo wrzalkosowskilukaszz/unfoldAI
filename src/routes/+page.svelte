@@ -8,28 +8,21 @@
 	import SaveIndicator from '$lib/components/SaveIndicator.svelte';
 	import ImportDocument from '$lib/components/ImportDocument.svelte';
 	import Step1Metadata from '$lib/components/steps/Step1Metadata.svelte';
-	import Step2Objectives from '$lib/components/steps/Step2Objectives.svelte';
-	import Step3Audience from '$lib/components/steps/Step3Audience.svelte';
-	import Step4Deliverables from '$lib/components/steps/Step4Deliverables.svelte';
-	import Step5Constraints from '$lib/components/steps/Step5Constraints.svelte';
+	import StepSection from '$lib/components/steps/StepSection.svelte';
 	import Step6Diagnose from '$lib/components/steps/Step6Diagnose.svelte';
 	import Step7Export from '$lib/components/steps/Step7Export.svelte';
-	import { briefStore, TOTAL_STEPS } from '$lib/stores/brief.svelte';
-	import { STEP_LABELS } from '$lib/types';
+	import { briefStore } from '$lib/stores/brief.svelte';
 
-	const steps = [
-		Step1Metadata,
-		Step2Objectives,
-		Step3Audience,
-		Step4Deliverables,
-		Step5Constraints,
-		Step6Diagnose,
-		Step7Export
-	];
+	/**
+	 * The wizard's shape comes from the brief's template: Basics, one step per
+	 * section, Survey, Export. A template with an extra section simply has an
+	 * extra step — nothing here needs to know which.
+	 */
+	let totalSteps = $derived(briefStore.totalSteps);
+	let stepLabels = $derived(briefStore.stepLabels);
+	let sectionKey = $derived(briefStore.sectionAtStep(briefStore.step));
 
 	let view = $state<'gallery' | 'wizard' | 'import'>('gallery');
-
-	let CurrentStep = $derived(steps[briefStore.step - 1]);
 
 	function openBrief(id: string) {
 		briefStore.openBrief(id);
@@ -193,7 +186,7 @@
 				<div class="mt-auto space-y-2 pt-8">
 					<SaveIndicator />
 					<p class="text-[0.66rem] font-medium tracking-[0.14em] text-ink-faint uppercase">
-						Step {briefStore.step} of {TOTAL_STEPS}
+						Step {briefStore.step} of {totalSteps}
 					</p>
 				</div>
 			</div>
@@ -204,7 +197,15 @@
 			<div class="mx-auto max-w-3xl px-5 pt-8 pb-32 sm:px-10 sm:pt-12 lg:pb-14">
 				{#key briefStore.step}
 					<div class="rise">
-						<CurrentStep />
+						{#if briefStore.step === 1}
+							<Step1Metadata />
+						{:else if sectionKey}
+							<StepSection {sectionKey} />
+						{:else if briefStore.step === briefStore.surveyStep}
+							<Step6Diagnose />
+						{:else}
+							<Step7Export />
+						{/if}
 					</div>
 				{/key}
 
@@ -222,13 +223,13 @@
 						Back
 					</button>
 
-					{#if briefStore.step < TOTAL_STEPS}
+					{#if briefStore.step < totalSteps}
 						<button
 							type="button"
 							onclick={() => briefStore.next()}
 							class="flex items-center gap-1.5 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-background transition-transform hover:-translate-y-0.5"
 						>
-							{STEP_LABELS[briefStore.step]}
+							{stepLabels[briefStore.step]}
 							<ArrowRight size={16} />
 						</button>
 					{/if}
@@ -250,13 +251,13 @@
 						Back
 					</button>
 
-					{#if briefStore.step < TOTAL_STEPS}
+					{#if briefStore.step < totalSteps}
 						<button
 							type="button"
 							onclick={() => briefStore.next()}
 							class="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-ink px-5 text-sm font-semibold text-background transition-transform active:scale-[0.98]"
 						>
-							{STEP_LABELS[briefStore.step]}
+							{stepLabels[briefStore.step]}
 							<ArrowRight size={17} />
 						</button>
 					{/if}

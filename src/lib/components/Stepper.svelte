@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Check } from '@lucide/svelte';
-	import { STEP_LABELS } from '$lib/types';
+	
 	import { briefStore } from '$lib/stores/brief.svelte';
 
 	let { current, onjump }: { current: number; onjump: (step: number) => void } = $props();
@@ -8,7 +8,7 @@
 
 <nav class="w-full" aria-label="Progress">
 	<ol class="flex items-start">
-		{#each STEP_LABELS as label, i}
+		{#each briefStore.stepLabels as label, i}
 			{@const step = i + 1}
 			{@const done = briefStore.isStepComplete(step)}
 			{@const active = step === current}
@@ -36,7 +36,7 @@
 					></span>
 					<span
 						class="absolute top-1/2 right-0 h-px w-1/2 -translate-y-1/2 transition-colors duration-500 {i ===
-						STEP_LABELS.length - 1
+						briefStore.stepLabels.length - 1
 							? 'opacity-0'
 							: done
 								? 'bg-accent'
@@ -77,6 +77,6 @@
 
 	<!-- Narrow screens carry numbers only, so name the current step beneath. -->
 	<p class="mt-1 text-center text-[0.72rem] font-medium tracking-wide text-accent uppercase sm:hidden">
-		{STEP_LABELS[current - 1]}
+		{briefStore.stepLabels[current - 1]}
 	</p>
 </nav>

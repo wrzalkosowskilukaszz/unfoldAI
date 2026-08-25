@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Check } from '@lucide/svelte';
-	import { STEP_LABELS } from '$lib/types';
 	import { briefStore } from '$lib/stores/brief.svelte';
 
 	let { current, onjump }: { current: number; onjump: (step: number) => void } = $props();
@@ -8,7 +7,7 @@
 
 <nav aria-label="Progress">
 	<ol class="space-y-0.5">
-		{#each STEP_LABELS as label, i}
+		{#each briefStore.stepLabels as label, i}
 			{@const step = i + 1}
 			{@const done = briefStore.isStepComplete(step)}
 			{@const active = step === current}

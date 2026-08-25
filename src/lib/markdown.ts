@@ -1,11 +1,19 @@
+import { SECTION_DEFS, sectionsFor } from '$lib/types';
 import type { Finding, ProjectMeta, SectionKey, SectionState } from '$lib/types';
 
-const SECTION_HEADINGS: [SectionKey, string][] = [
-	['objectives', 'Executive Summary'],
-	['audience', 'Target Audience'],
-	['deliverables', 'Deliverables'],
-	['constraints', 'Constraints']
-];
+/**
+ * The exported document reads better with an "Executive Summary" than a
+ * "Context & Objectives", so a few core sections get a document-voice heading.
+ * Anything else falls back to the section's own heading.
+ */
+const DOCUMENT_HEADINGS: Record<string, string> = {
+	objectives: 'Executive Summary',
+	audience: 'Target Audience'
+};
+
+function headingFor(key: SectionKey): string {
+	return DOCUMENT_HEADINGS[key] ?? SECTION_DEFS[key]?.heading ?? key;
+}
 
 /**
  * Briefs built before the interview switched to markdown still hold raw
@@ -33,24 +41,18 @@ export interface OpenItems {
 	empty: SectionKey[];
 }
 
-const SECTION_LABEL: Record<SectionKey, string> = {
-	objectives: 'Context & Objectives',
-	audience: 'Target Audience',
-	deliverables: 'Deliverables',
-	constraints: 'Constraints'
-};
-
 /** Section content only. The Export view renders its own designed header above this. */
 export function compileBriefBody(
 	sections: Record<SectionKey, SectionState>,
+	keys: SectionKey[],
 	decisions: Finding[] = [],
 	open?: OpenItems
 ): string {
 	const parts: string[] = [];
 
-	for (const [key, heading] of SECTION_HEADINGS) {
-		const body = normalizeLegacyTranscript(sections[key].raw.trim()) || '_Not provided._';
-		parts.push(`## ${heading}`, '', body, '');
+	for (const key of keys) {
+		const body = normalizeLegacyTranscript((sections[key]?.raw ?? '').trim()) || '_Not provided._';
+		parts.push(`## ${headingFor(key)}`, '', body, '');
 	}
 
 	if (decisions.length > 0) {
@@ -78,7 +80,7 @@ export function compileBriefBody(
 		if (open.empty.length > 0) {
 			parts.push(
 				'',
-				`**Not yet filled in:** ${open.empty.map((k) => SECTION_LABEL[k]).join(', ')}.`
+				`**Not yet filled in:** ${open.empty.map((k) => headingFor(k)).join(', ')}.`
 			);
 		}
 		parts.push('');
@@ -94,6 +96,7 @@ export function compileBriefMarkdown(
 	decisions: Finding[] = [],
 	open?: OpenItems
 ): string {
+	const keys = sectionsFor(meta.projectType);
 	return [
 		`# ${meta.projectName.trim() || 'Untitled Project'}`,
 		'',
@@ -101,6 +104,6 @@ export function compileBriefMarkdown(
 		`**Brief Date:** ${meta.briefDate || '—'}  `,
 		`**Target Launch Date:** ${meta.launchDate || '—'}`,
 		'',
-		compileBriefBody(sections, decisions, open)
+		compileBriefBody(sections, keys, decisions, open)
 	].join('\n');
 }

@@ -1,7 +1,11 @@
 import { browser } from '$app/environment';
 import {
-	SECTION_ORDER,
+	SECTION_DEFS,
 	STEP_LABELS,
+	sectionsFor,
+	stepLabelsFor,
+	surveyStepFor,
+	totalStepsFor,
 	type Finding,
 	type HelpExchange,
 	type ProjectMeta,
@@ -19,6 +23,7 @@ const LEGACY_BRIEFS_KEY = 'briefflow-ai-briefs-v1';
 /** Original single-brief store, from before the My Briefs gallery existed. */
 const LEGACY_SINGLE_KEY = 'briefflow-ai-state-v1';
 /** Derived from the labels so the two can never drift apart. */
+/** Default only. A brief's real length depends on its template — use briefStore.totalSteps. */
 const TOTAL_STEPS = STEP_LABELS.length;
 const DEFAULT_NAME = 'Untitled Brief';
 
@@ -37,9 +42,14 @@ function emptyMeta(): ProjectMeta {
 	};
 }
 
+/**
+ * Seeds every section this app knows about, not just the current template's.
+ * Switching template then only changes which are *shown* — nothing a person
+ * already typed is ever dropped on the floor.
+ */
 function emptySections(): Record<SectionKey, SectionState> {
 	const sections = {} as Record<SectionKey, SectionState>;
-	for (const key of SECTION_ORDER) sections[key] = emptySection();
+	for (const key of Object.keys(SECTION_DEFS)) sections[key] = emptySection();
 	return sections;
 }
 
@@ -75,7 +85,8 @@ function normalizeBrief(brief: SavedBrief): SavedBrief {
 	// Briefs written before the role question existed simply never answered it.
 	if (brief.meta && brief.meta.role === undefined) brief.meta.role = null;
 	if (brief.meta && brief.meta.projectType === undefined) brief.meta.projectType = null;
-	for (const key of SECTION_ORDER) {
+	// Briefs written before a section existed simply do not have it yet.
+	for (const key of Object.keys(SECTION_DEFS)) {
 		if (!brief.sections[key]) brief.sections[key] = emptySection();
 	}
 	return brief;
@@ -217,29 +228,41 @@ class BriefStore {
 	 * completion — marking empty steps "done" because the user walked past them
 	 * reports a state that isn't true, and lets an empty brief look finished.
 	 */
+	/** The section ids this brief is made of, in order, per its template. */
+	get sectionKeys(): SectionKey[] {
+		return sectionsFor(this.active.meta.projectType);
+	}
+
+	get stepLabels(): string[] {
+		return stepLabelsFor(this.active.meta.projectType);
+	}
+
+	get totalSteps(): number {
+		return totalStepsFor(this.active.meta.projectType);
+	}
+
+	/** Step 1 is Basics, then one step per section, then Survey, then Export. */
+	get surveyStep(): number {
+		return surveyStepFor(this.active.meta.projectType);
+	}
+
+	/** The section shown at a given step, or null if that step isn't a section. */
+	sectionAtStep(step: number): SectionKey | null {
+		return this.sectionKeys[step - 2] ?? null;
+	}
+
 	isStepComplete(step: number): boolean {
 		const b = this.active;
-		switch (step) {
-			case 1:
-				return b.meta.projectName.trim().length > 0;
-			case 2:
-				return b.sections.objectives.raw.trim().length > 0;
-			case 3:
-				return b.sections.audience.raw.trim().length > 0;
-			case 4:
-				return b.sections.deliverables.raw.trim().length > 0;
-			case 5:
-				return b.sections.constraints.raw.trim().length > 0;
-			case 6:
-				return b.reviewedAt !== null && b.findings.length > 0;
-			default:
-				return false;
-		}
+		if (step === 1) return b.meta.projectName.trim().length > 0;
+		if (step === this.surveyStep) return b.reviewedAt !== null && b.findings.length > 0;
+		const key = this.sectionAtStep(step);
+		if (key) return (b.sections[key]?.raw ?? '').trim().length > 0;
+		return false;
 	}
 
 	/** Sections left empty — surfaced in the export so gaps are visible. */
 	get emptySections(): SectionKey[] {
-		return SECTION_ORDER.filter((k) => !this.active.sections[k].raw.trim());
+		return this.sectionKeys.filter((k) => !(this.active.sections[k]?.raw ?? '').trim());
 	}
 
 	get openFindings(): Finding[] {
@@ -333,7 +356,7 @@ class BriefStore {
 	}
 
 	goToStep(step: number) {
-		this.active.step = Math.min(Math.max(step, 1), TOTAL_STEPS);
+		this.active.step = Math.min(Math.max(step, 1), this.totalSteps);
 		this.persist();
 	}
 
@@ -350,11 +373,17 @@ class BriefStore {
 		if (!this.active.nameManuallySet && patch.projectName?.trim()) {
 			this.active.name = patch.projectName.trim();
 		}
+		// Templates differ in length, so a change can leave you past the last step.
+		// Nothing is lost — sections not in the new template keep their text.
+		if (patch.projectType !== undefined) {
+			this.active.step = Math.min(this.active.step, this.totalSteps);
+		}
 		this.touch();
 		this.persist();
 	}
 
 	setRaw(key: SectionKey, value: string) {
+		if (!this.active.sections[key]) this.active.sections[key] = emptySection();
 		this.active.sections[key].raw = value;
 		this.active.sections[key].accepted = false;
 		this.touch();

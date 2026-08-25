@@ -3,7 +3,7 @@
 	import { briefStore } from '$lib/stores/brief.svelte';
 	import FindingCard from '$lib/components/FindingCard.svelte';
 	import SpectralOrb from '$lib/components/SpectralOrb.svelte';
-	import { SECTION_ORDER, type Finding } from '$lib/types';
+	import type { Finding } from '$lib/types';
 
 	let status = $state<'idle' | 'loading' | 'error'>('idle');
 	let errorMsg = $state<string | null>(null);
@@ -54,7 +54,9 @@
 		locked: locked.length
 	});
 
-	let hasContent = $derived(SECTION_ORDER.some((k) => briefStore.sections[k].raw.trim()));
+	let hasContent = $derived(
+		briefStore.sectionKeys.some((k) => (briefStore.sections[k]?.raw ?? '').trim())
+	);
 
 	async function runReview() {
 		status = 'loading';
@@ -62,7 +64,7 @@
 		startNotes();
 		try {
 			const sections: Record<string, string> = {};
-			for (const key of SECTION_ORDER) sections[key] = briefStore.sections[key].raw;
+			for (const key of briefStore.sectionKeys) sections[key] = briefStore.sections[key]?.raw ?? '';
 
 			const res = await fetch('/api/review-brief', {
 				method: 'POST',

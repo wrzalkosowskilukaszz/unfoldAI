@@ -72,6 +72,17 @@ Two rules that fall out of this:
   Never turn these into pre-filled placeholder text — people delete that, and it
   teaches the model nothing. The code identifier stays `projectType` because it
   is a persisted field; the UI language is "template".
+- **A template also defines the brief's shape.** `PROJECT_TYPES[t].sections` is
+  an ordered list of ids from `SECTION_DEFS`, and the whole wizard derives from
+  it: `stepLabelsFor`, `totalStepsFor`, `surveyStepFor`, `briefStore.sectionKeys`.
+  Basics, one step per section, Survey, Export. Adding a section to a template is
+  a data change — there is one generic `StepSection.svelte`, not one component
+  per step.
+- **Section storage is deliberately lossless.** `emptySections()` seeds *every*
+  key in `SECTION_DEFS`, not just the current template's, so switching template
+  hides sections rather than deleting them. Verified: text typed into a
+  packaging-only section is still there after switching to campaign and back.
+  Never "clean up" unused sections — that silently destroys work.
 
 **The app serves both ends of one handoff**, not one audience. The person
 commissioning the work and the studio delivering it both use it, on the same

@@ -41,7 +41,12 @@
 	let neverReviewed = $derived(briefStore.reviewedAt === null);
 
 	let structuredBody = $derived(
-		compileBriefBody(briefStore.sections, decisions, includeOpen ? openItems : undefined)
+		compileBriefBody(
+			briefStore.sections,
+			briefStore.sectionKeys,
+			decisions,
+			includeOpen ? openItems : undefined
+		)
 	);
 	let bodyMarkdown = $derived(
 		view === 'polished' && polishedMarkdown ? polishedMarkdown : structuredBody
@@ -93,12 +98,9 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					meta: briefStore.meta,
-					sections: {
-						objectives: briefStore.sections.objectives.raw,
-						audience: briefStore.sections.audience.raw,
-						deliverables: briefStore.sections.deliverables.raw,
-						constraints: briefStore.sections.constraints.raw
-					},
+					sections: Object.fromEntries(
+						briefStore.sectionKeys.map((k) => [k, briefStore.sections[k]?.raw ?? ''])
+					),
 					decisions: decisions.map((d) => ({
 						dimension: d.dimension,
 						title: d.title,

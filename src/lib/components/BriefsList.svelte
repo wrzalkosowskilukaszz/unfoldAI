@@ -11,7 +11,8 @@
 		MoreHorizontal,
 		AlertTriangle
 	} from '@lucide/svelte';
-	import { briefStore, TOTAL_STEPS } from '$lib/stores/brief.svelte';
+	import { briefStore } from '$lib/stores/brief.svelte';
+	import { totalStepsFor } from '$lib/types';
 	import type { SavedBrief } from '$lib/types';
 	import FirstRun from '$lib/components/FirstRun.svelte';
 	import { modal } from '$lib/actions/modal';
@@ -50,7 +51,9 @@
 	}
 
 	function stepLabel(brief: SavedBrief): string {
-		return brief.step >= TOTAL_STEPS ? 'Complete' : `Step ${brief.step} of ${TOTAL_STEPS}`;
+		// Each brief's length depends on its own template, not whichever is open.
+		const total = totalStepsFor(brief.meta.projectType);
+		return brief.step >= total ? 'Complete' : `Step ${brief.step} of ${total}`;
 	}
 
 	function handleNew() {
@@ -275,7 +278,7 @@
 				<div class="h-1.5 w-full overflow-hidden rounded-full bg-surface-alt">
 					<div
 						class="h-full rounded-full"
-						style="width: {(brief.step / TOTAL_STEPS) * 100}%; background: linear-gradient(90deg, var(--color-accent), var(--color-accent-soft))"
+						style="width: {(brief.step / totalStepsFor(brief.meta.projectType)) * 100}%; background: linear-gradient(90deg, var(--color-accent), var(--color-accent-soft))"
 					></div>
 				</div>
 				<span class="text-[0.72rem] font-medium text-ink-faint">{stepLabel(brief)}</span>

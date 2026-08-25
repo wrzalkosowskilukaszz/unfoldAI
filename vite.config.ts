@@ -1,0 +1,41 @@
+import tailwindcss from '@tailwindcss/vite';
+import adapter from '@sveltejs/adapter-auto';
+import { sveltekit } from '@sveltejs/kit/vite';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+	plugins: [
+		tailwindcss(),
+		sveltekit({
+			compilerOptions: {
+				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
+				runes: ({ filename }) => filename.split(/[/\\]/).includes('node_modules') ? undefined : true
+			},
+
+			// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
+			// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
+			// See https://svelte.dev/docs/kit/adapters for more information about adapters.
+			adapter: adapter(),
+
+			/**
+			 * Content Security Policy. SvelteKit hashes its own inline bootstrap
+			 * script automatically, so 'unsafe-inline' is never needed for scripts.
+			 * Styles do need it: the UI uses inline style="" attributes throughout.
+			 */
+			csp: {
+				directives: {
+					'default-src': ['self'],
+					'script-src': ['self'],
+					'style-src': ['self', 'unsafe-inline', 'https://fonts.googleapis.com'],
+					'font-src': ['self', 'https://fonts.gstatic.com'],
+					'img-src': ['self', 'data:'],
+					'connect-src': ['self'],
+					'object-src': ['none'],
+					'base-uri': ['self'],
+					'form-action': ['self'],
+					'frame-ancestors': ['none']
+				}
+			}
+		})
+	]
+});

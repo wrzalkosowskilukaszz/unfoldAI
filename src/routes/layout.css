@@ -1,0 +1,349 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/*
+ * One identity, two expressions. Every colour is defined once here as a raw
+ * variable and swapped wholesale under [data-theme="dark"]; the Tailwind tokens
+ * below only ever point at these, so no component needs a dark: variant.
+ */
+:root {
+	--c-bg: #fbfaf9;
+	--c-surface: #ffffff;
+	--c-surface-alt: #f4f3f7;
+	--c-surface-hover: #edebf3;
+
+	--c-border: #e8e6ef;
+	--c-border-strong: #d6d3e0;
+
+	--c-ink: #12111a;
+	--c-ink-soft: #5a5768;
+	--c-ink-faint: #918da3;
+
+	--c-accent: #7a6cff;
+	--c-accent-soft: #a79dff;
+	--c-accent-wash: #e0dcf9;
+	--c-on-accent: #ffffff;
+
+	--c-clear: #2f7d5b;
+	--c-clear-wash: #eaf5ef;
+	--c-attention: #a8730f;
+	--c-attention-wash: #fbf3e2;
+	--c-contradiction: #c0392b;
+	--c-contradiction-wash: #fceeec;
+	--c-unknown: #64748b;
+	--c-unknown-wash: #f1f3f6;
+
+	--c-grain: 0.03;
+	--c-elevation: 0 24px 60px -34px rgba(18, 17, 26, 0.24);
+	/* The mark's tile stays dark in both themes so the blades always read. */
+	--c-mark-bg: #0b096b;
+}
+
+:root[data-theme='dark'] {
+	--c-bg: #0c0b10;
+	--c-surface: #141320;
+	--c-surface-alt: #1b1a28;
+	--c-surface-hover: #232134;
+
+	--c-border: #26243a;
+	--c-border-strong: #37344f;
+
+	--c-ink: #f2f1f7;
+	--c-ink-soft: #a8a4bd;
+	--c-ink-faint: #6e6a85;
+
+	--c-accent: #8f83ff;
+	--c-accent-soft: #a79dff;
+	--c-accent-wash: #221f45;
+	--c-on-accent: #ffffff;
+
+	--c-clear: #4ade9b;
+	--c-clear-wash: #12281f;
+	--c-attention: #f0b429;
+	--c-attention-wash: #2c2110;
+	--c-contradiction: #ff6b5a;
+	--c-contradiction-wash: #2e1715;
+	--c-unknown: #8b93a7;
+	--c-unknown-wash: #1c1f28;
+
+	--c-grain: 0.045;
+	--c-elevation: 0 24px 70px -30px rgba(0, 0, 0, 0.75);
+	--c-mark-bg: #241f42;
+}
+
+@theme {
+	--color-background: var(--c-bg);
+	--color-surface: var(--c-surface);
+	--color-surface-alt: var(--c-surface-alt);
+	--color-surface-hover: var(--c-surface-hover);
+
+	--color-border: var(--c-border);
+	--color-border-strong: var(--c-border-strong);
+
+	--color-ink: var(--c-ink);
+	--color-ink-soft: var(--c-ink-soft);
+	--color-ink-faint: var(--c-ink-faint);
+
+	--color-accent: var(--c-accent);
+	--color-accent-soft: var(--c-accent-soft);
+	--color-accent-wash: var(--c-accent-wash);
+	--color-on-accent: var(--c-on-accent);
+
+	--color-clear: var(--c-clear);
+	--color-clear-wash: var(--c-clear-wash);
+	--color-attention: var(--c-attention);
+	--color-attention-wash: var(--c-attention-wash);
+	--color-contradiction: var(--c-contradiction);
+	--color-contradiction-wash: var(--c-contradiction-wash);
+	--color-unknown: var(--c-unknown);
+	--color-unknown-wash: var(--c-unknown-wash);
+
+	--font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Scales every rem-based size at once. The larger desktop step is deliberate
+   for long-form reading; on a phone it just makes everything chunky. */
+html {
+	font-size: 16px;
+}
+
+@media (min-width: 640px) {
+	html {
+		font-size: 17.5px;
+	}
+}
+
+body {
+	background-color: var(--c-bg);
+	color: var(--c-ink);
+	-webkit-font-smoothing: antialiased;
+	transition:
+		background-color 0.35s ease,
+		color 0.35s ease;
+}
+
+/* Fine grain — stops the flat fill reading as a plain web page. */
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: 9999;
+	pointer-events: none;
+	opacity: var(--c-grain);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.font-display {
+	font-family: var(--font-display);
+	letter-spacing: -0.02em;
+}
+
+.elevated {
+	box-shadow: var(--c-elevation);
+}
+
+/* Clears the home indicator on notched phones — and in a packaged app shell. */
+.safe-bottom {
+	padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Stops iOS Safari zooming the page when a field is focused: it does that for
+   any input under 16px, which on this app would otherwise fire constantly. */
+@media (max-width: 767px) {
+	input,
+	textarea,
+	select {
+		font-size: max(16px, 1em);
+	}
+
+	/*
+	 * Floor every control at the 44px touch target from Apple's HIG and WCAG
+	 * 2.5.5, rather than relying on each button remembering to set it. Opt out
+	 * with data-compact where a control is deliberately inline (e.g. inside a
+	 * sentence of text).
+	 */
+	button:not([data-compact]),
+	[role='button']:not([data-compact]) {
+		min-height: 44px;
+	}
+
+	/* Icon-only controls need width too, not just height. */
+	button:not([data-compact]):has(> svg:only-child) {
+		min-width: 44px;
+	}
+}
+
+/*
+ * The hero illustration is authored light-only. On the dark theme its navy line
+ * work loses contrast against the near-black ground, so give it its own soft
+ * plate to sit on — the artwork stays untouched and reads as an inset panel.
+ */
+.anim-plate {
+	border-radius: 2rem;
+	transition: background 0.35s ease;
+}
+
+:root[data-theme='dark'] .anim-plate {
+	background: radial-gradient(120% 120% at 50% 35%, #efedfb 0%, #ded9f6 70%, #d2ccf2 100%);
+	box-shadow:
+		0 0 0 1px rgba(122, 108, 255, 0.22),
+		0 30px 70px -40px rgba(0, 0, 0, 0.85);
+	padding: 1.25rem;
+}
+
+@keyframes rise {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+.rise {
+	animation: rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The one place iridescence is allowed: generative moments. */
+@keyframes spectral-drift {
+	0% {
+		transform: rotate(0deg) scale(1);
+	}
+	50% {
+		transform: rotate(180deg) scale(1.07);
+	}
+	100% {
+		transform: rotate(360deg) scale(1);
+	}
+}
+
+@keyframes breathe {
+	0%,
+	100% {
+		opacity: 0.55;
+	}
+	50% {
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.rise {
+		animation: none;
+	}
+	[class*='spectral'],
+	[data-motion] * {
+		animation: none !important;
+	}
+}
+
+.prose-brief {
+	--tw-prose-body: var(--c-ink-soft);
+	--tw-prose-headings: var(--c-ink);
+	--tw-prose-bold: var(--c-ink);
+	--tw-prose-bullets: var(--c-accent);
+	--tw-prose-hr: var(--c-border);
+	--tw-prose-links: var(--c-accent);
+	--tw-prose-counters: var(--c-accent);
+}
+
+.prose-brief :where(h2) {
+	font-family: var(--font-display);
+	font-size: 0.78rem;
+	font-weight: 600;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--c-ink-faint);
+	border-top: 1px solid var(--c-border);
+	padding-top: 1.6rem;
+	margin-top: 2.6rem;
+	margin-bottom: 1.1rem;
+	position: relative;
+}
+
+.prose-brief :where(h2)::before {
+	content: '';
+	position: absolute;
+	top: -1px;
+	left: 0;
+	width: 2.2rem;
+	height: 2px;
+	background: var(--c-accent);
+}
+
+.prose-brief :where(h2:first-child) {
+	border-top: none;
+	padding-top: 0;
+	margin-top: 0;
+}
+
+.prose-brief :where(h2:first-child)::before {
+	display: none;
+}
+
+.prose-brief :where(h3) {
+	font-family: var(--font-display);
+	font-size: 1.02rem;
+	letter-spacing: -0.01em;
+	margin-top: 1.6rem;
+	margin-bottom: 0.5rem;
+}
+
+.prose-brief :where(p) {
+	font-size: 0.97rem;
+	line-height: 1.75;
+}
+
+.prose-brief :where(li) {
+	font-size: 0.97rem;
+	line-height: 1.7;
+	margin-top: 0.35rem;
+}
+
+.prose-brief :where(strong) {
+	font-weight: 600;
+}
+
+.prose-brief :where(p > strong:only-child) {
+	display: inline-block;
+	font-family: var(--font-display);
+	font-size: 0.95rem;
+	color: var(--c-ink);
+}
+
+@media print {
+	/* The export sheet always prints light, whatever the app theme is. */
+	body {
+		background: white;
+	}
+
+	body::before {
+		display: none;
+	}
+
+	body * {
+		visibility: hidden;
+	}
+
+	#printable-brief,
+	#printable-brief * {
+		visibility: visible;
+	}
+
+	#printable-brief {
+		position: absolute;
+		inset: 0;
+		padding: 2rem;
+		box-shadow: none !important;
+		border: none !important;
+		background: white !important;
+	}
+
+	#printable-brief,
+	#printable-brief * {
+		color: black !important;
+	}
+}

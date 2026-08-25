@@ -85,7 +85,8 @@
 					otherSections,
 					answered: answers,
 					learnedContext: briefStore.helpHistory,
-					role: briefStore.meta.role
+					role: briefStore.meta.role,
+					projectType: briefStore.meta.projectType
 				})
 			});
 

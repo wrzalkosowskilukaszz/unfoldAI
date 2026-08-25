@@ -40,6 +40,7 @@
 
 	let open = $derived(findings.filter((f) => f.status === 'open'));
 	let locked = $derived(findings.filter((f) => f.status === 'confirmed'));
+	let dismissed = $derived(findings.filter((f) => f.status === 'dismissed'));
 
 	// Most consequential first; strengths last so the panel doesn't open with praise.
 	const ORDER = ['contradiction', 'why', 'assumption', 'missing', 'attention', 'clear'];
@@ -216,7 +217,22 @@
 			</div>
 		{/if}
 
-		{#if sortedOpen.length === 0 && locked.length > 0}
+		{#if dismissed.length > 0}
+			<details class="group">
+				<summary
+					class="cursor-pointer list-none text-[0.72rem] font-semibold tracking-[0.14em] text-ink-faint uppercase transition hover:text-ink-soft"
+				>
+					Set aside ({dismissed.length}) — click to review
+				</summary>
+				<div class="mt-3 space-y-3">
+					{#each dismissed as finding, i (finding.id)}
+						<FindingCard {finding} index={i} />
+					{/each}
+				</div>
+			</details>
+		{/if}
+
+		{#if sortedOpen.length === 0 && locked.length + dismissed.length > 0}
 			<p class="text-center text-sm text-clear">
 				Everything raised has been settled. This brief is ready to export.
 			</p>

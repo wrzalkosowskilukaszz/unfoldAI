@@ -5,6 +5,7 @@
 	import StepNav from '$lib/components/StepNav.svelte';
 	import { themeStore } from '$lib/stores/theme.svelte';
 	import BriefsList from '$lib/components/BriefsList.svelte';
+	import SaveIndicator from '$lib/components/SaveIndicator.svelte';
 	import ImportDocument from '$lib/components/ImportDocument.svelte';
 	import Step1Metadata from '$lib/components/steps/Step1Metadata.svelte';
 	import Step2Objectives from '$lib/components/steps/Step2Objectives.svelte';
@@ -146,6 +147,9 @@
 
 				<div class="mt-3">
 					<Stepper current={briefStore.step} onjump={(step) => briefStore.goToStep(step)} />
+					<div class="mt-1 flex justify-center">
+						<SaveIndicator compact />
+					</div>
 				</div>
 			</div>
 
@@ -186,7 +190,8 @@
 					<StepNav current={briefStore.step} onjump={(step) => briefStore.goToStep(step)} />
 				</div>
 
-				<div class="mt-auto pt-8">
+				<div class="mt-auto space-y-2 pt-8">
+					<SaveIndicator />
 					<p class="text-[0.66rem] font-medium tracking-[0.14em] text-ink-faint uppercase">
 						Step {briefStore.step} of {TOTAL_STEPS}
 					</p>

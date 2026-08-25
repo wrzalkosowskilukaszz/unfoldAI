@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
-import { roleFraming } from '$lib/server/role';
+import { projectLens, roleFraming } from '$lib/server/role';
 import { SECTION_LABELS_FOR_PROMPT, VALID_SECTIONS } from '$lib/server/prompts';
 import { MAX_HELP_QUESTIONS, type HelpQuestion } from '$lib/types';
 
@@ -30,6 +30,7 @@ interface RequestBody {
 	answered?: { question: string; answer: string; skipped?: boolean }[];
 	learnedContext?: { section: string; question: string; answer: string }[];
 	role?: unknown;
+	projectType?: unknown;
 }
 
 function stripCodeFences(text: string): string {
@@ -98,7 +99,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const userPrompt = `Someone is filling out the "${sectionLabel}" section of a creative brief and isn't sure how to answer.
 
-Who they are: ${roleFraming(body.role)}
+Who they are: ${roleFraming(body.role)}\n\nDiscipline: ${projectLens(body.projectType)}
 
 What they've written for this section so far (may be empty): "${(sectionRaw ?? '').trim() || '(nothing yet)'}"
 

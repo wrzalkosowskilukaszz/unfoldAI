@@ -44,7 +44,7 @@ export type FindingKind =
 	| 'assumption'
 	| 'why';
 
-export type FindingStatus = 'open' | 'confirmed';
+export type FindingStatus = 'open' | 'confirmed' | 'dismissed';
 
 export interface Finding {
 	id: string;
@@ -60,6 +60,8 @@ export interface Finding {
 	/** The answer that locked it. */
 	resolution?: string;
 	resolvedAt?: string;
+	/** Set when the user says the finding doesn't apply. */
+	dismissedAt?: string;
 }
 
 export const FINDING_META: Record<
@@ -81,6 +83,8 @@ export interface ProjectMeta {
 	launchDate: string;
 	/** Null until the person says which end of the handoff they are on. */
 	role: BriefRole | null;
+	/** Null until they pick a discipline; drives the AI's specialist lens. */
+	projectType: ProjectType | null;
 }
 
 export interface SavedBrief {
@@ -163,5 +167,49 @@ export const ROLE_COPY: Record<BriefRole, RoleCopy> = {
 		orgPlaceholder: 'e.g. Acme Corp',
 		promptFraming:
 			'The person writing this is the DESIGNER, studio or agency who will deliver the work. They are writing up what a client told them, so the notes may be second-hand. Refer to "the client" in the third person, and treat design vocabulary as shared ground.'
+	}
+};
+
+/**
+ * The kind of project being briefed.
+ *
+ * This is deliberately NOT a form template — pre-filled placeholder text gets
+ * deleted and teaches the model nothing. It is a lens: it changes what the AI
+ * asks about, what it treats as complete, and above all what it notices is
+ * *absent*. The diagnostic can only flag a missing dieline if it knows the
+ * project is packaging.
+ */
+export type ProjectType = 'identity' | 'website' | 'packaging' | 'campaign' | 'product' | 'other';
+
+export interface ProjectTypeLens {
+	label: string;
+	/** Handed to every prompt so the model reasons as a specialist in this field. */
+	lens: string;
+}
+
+export const PROJECT_TYPES: Record<ProjectType, ProjectTypeLens> = {
+	identity: {
+		label: 'Brand identity',
+		lens: 'Reason as a brand identity specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: whether naming is in scope; which applications the identity must survive (signage, packaging, digital, merchandise, vehicle livery); how deep the guidelines must go and who will apply them; whether existing equity must be retained or deliberately broken; the competitor set it must stand apart from; typeface licensing and who pays for it; and whether any trademark search has happened.'
+	},
+	website: {
+		label: 'Website or app',
+		lens: 'Reason as a digital product specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: who writes the content and when it will exist; page or screen count and template count as distinct numbers; the CMS or platform and whether it is already chosen; required integrations (payments, CRM, booking, analytics); responsive and accessibility expectations; who builds it versus who designs it; migration of existing content and URLs; and what happens after launch.'
+	},
+	packaging: {
+		label: 'Packaging',
+		lens: 'Reason as a packaging design specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: exact SKU count and variants; substrate and finish; whether dielines exist or must be created and who supplies them; print process and printer; mandatory regulatory copy, barcodes and nutritional panels; shelf context and competitor adjacency; sustainability requirements; and territory, since legal copy changes by market.'
+	},
+	campaign: {
+		label: 'Campaign',
+		lens: 'Reason as a campaign and advertising specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: the full channel and format list with specs; whether media is booked and to what deadline; asset volume across sizes and cut-downs; usage rights, talent buyouts and stock licensing with their durations; localisation and how many markets; whether there is a single-minded proposition or a list of messages; and how success will actually be measured.'
+	},
+	product: {
+		label: 'Physical product',
+		lens: 'Reason as an industrial and product design specialist. Things briefs in this field routinely omit, and which you should probe for and flag when absent: manufacturing process and tooling cost; materials and finishes; target unit cost and volume; certification and safety compliance for each territory; prototyping stages expected; who owns the CAD and the tooling; and lead times, which usually dominate the timeline.'
+	},
+	other: {
+		label: 'Something else',
+		lens: 'No specific discipline has been stated. Stay general: do not assume a medium, and where the medium would change the answer, ask rather than guess.'
 	}
 };

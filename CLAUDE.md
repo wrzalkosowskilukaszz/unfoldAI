@@ -23,7 +23,15 @@ Two rules that fall out of this:
   checks one.
 - **Never ship a nagging machine.** `/api/review-brief` prompt rule `1a` makes at
   least one "clear" finding mandatory. A tool that only ever reports problems
-  gets closed. Don't remove that rule.
+  gets closed. Don't remove that rule. The same principle is why findings can be
+  dismissed (`status: 'dismissed'`) and why `setFindings` treats a dismissal as
+  as deliberate as a confirmation — a re-review that resurrected set-aside
+  findings would be exactly the machine we promised not to build.
+- **Project type is a lens, not a template.** `PROJECT_TYPES` in `types.ts`
+  changes what the AI probes for and, crucially, what it flags as *absent* — the
+  diagnostic can only mention a missing dieline if it knows the job is packaging.
+  Don't turn these into pre-filled placeholder text; people delete that and it
+  teaches the model nothing.
 
 **The app serves both ends of one handoff**, not one audience. The person
 commissioning the work and the studio delivering it both use it, on the same

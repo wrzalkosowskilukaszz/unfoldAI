@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Check, PencilLine, Lock, RotateCcw, ArrowRight } from '@lucide/svelte';
+	import { Check, PencilLine, Lock, RotateCcw, ArrowRight, X } from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
 	import { FINDING_META, type Finding } from '$lib/types';
 
@@ -51,7 +51,19 @@
 			<span class="text-[0.66rem] font-medium tracking-[0.12em] text-ink-faint uppercase">
 				{finding.dimension}
 			</span>
-			{#if finding.status === 'confirmed'}
+			{#if finding.status === 'dismissed'}
+			<div class="flex items-start justify-between gap-3 rounded-xl bg-surface-alt/70 px-3 py-2">
+				<p class="text-sm text-ink-soft">Set aside — you decided this one doesn't apply.</p>
+				<button
+					type="button"
+					onclick={() => briefStore.reopenFinding(finding.id)}
+					class="flex shrink-0 items-center gap-1 text-[0.72rem] font-medium text-ink-faint transition hover:text-ink-soft"
+				>
+					<RotateCcw size={11} />
+					Bring back
+				</button>
+			</div>
+		{:else if finding.status === 'confirmed'}
 				<span class="ml-auto flex items-center gap-1 text-[0.66rem] font-semibold text-clear uppercase">
 					<Lock size={10} />
 					Locked
@@ -64,7 +76,19 @@
 			<p class="text-sm leading-relaxed text-ink-soft">{finding.detail}</p>
 		</div>
 
-		{#if finding.status === 'confirmed'}
+		{#if finding.status === 'dismissed'}
+			<div class="flex items-start justify-between gap-3 rounded-xl bg-surface-alt/70 px-3 py-2">
+				<p class="text-sm text-ink-soft">Set aside — you decided this one doesn't apply.</p>
+				<button
+					type="button"
+					onclick={() => briefStore.reopenFinding(finding.id)}
+					class="flex shrink-0 items-center gap-1 text-[0.72rem] font-medium text-ink-faint transition hover:text-ink-soft"
+				>
+					<RotateCcw size={11} />
+					Bring back
+				</button>
+			</div>
+		{:else if finding.status === 'confirmed'}
 			<div class="flex items-start justify-between gap-3 rounded-xl bg-clear-wash px-3 py-2">
 				<p class="text-sm font-medium text-ink">
 					<span class="text-clear">→</span>
@@ -137,6 +161,20 @@
 							My own answer
 						</button>
 					</div>
+
+					<!--
+						The escape hatch. Without it the review is a verdict you cannot
+						argue with, and a tool that only ever tells you what's wrong is
+						one you stop opening.
+					-->
+					<button
+						type="button"
+						onclick={() => briefStore.dismissFinding(finding.id)}
+						class="mt-2.5 flex items-center gap-1 text-[0.72rem] font-medium text-ink-faint transition hover:text-ink-soft"
+					>
+						<X size={11} />
+						This doesn't apply
+					</button>
 				{/if}
 			</div>
 		{:else}

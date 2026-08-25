@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
+import { projectLens, roleFraming } from '$lib/server/role';
 import { SECTION_LABELS_FOR_PROMPT } from '$lib/server/prompts';
 import type { Finding, FindingKind } from '$lib/types';
 
@@ -40,7 +41,7 @@ Rules:
 {"findings": [{"id": "f1", "kind": "contradiction", "dimension": "Positioning", "title": "...", "detail": "...", "question": "...", "options": ["...", "..."]}]}`;
 
 interface RequestBody {
-	meta?: Record<string, string>;
+	meta?: Record<string, unknown>;
 	sections?: Record<string, string>;
 	helpHistory?: { section: string; question: string; answer: string }[];
 	decisions?: { dimension: string; title: string; resolution?: string }[];
@@ -117,16 +118,26 @@ export const POST: RequestHandler = async ({ request }) => {
 		.map((d) => `- ${d.dimension}: ${d.title} → ${d.resolution ?? 'confirmed'}`)
 		.join('\n');
 
+	const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+
 	const userPrompt = `PROJECT
-Name: ${meta.projectName?.trim() || '(unnamed)'}
-Client/Brand: ${meta.clientName?.trim() || '(not given)'}
-Brief date: ${meta.briefDate || '(not given)'}
-Target launch: ${meta.launchDate || '(not given)'}
+Name: ${str(meta.projectName) || '(unnamed)'}
+Client/Brand: ${str(meta.clientName) || '(not given)'}
+Brief date: ${str(meta.briefDate) || '(not given)'}
+Target launch: ${str(meta.launchDate) || '(not given)'}
+
+WHO WROTE IT
+${roleFraming(meta.role)}
+
+DISCIPLINE — review it as a specialist in this field. Absences that matter in
+this discipline are findings in their own right; say what is missing, not just
+what is unclear.
+${projectLens(meta.projectType)}
 
 THE BRIEF
 ${sectionLines}
 
-WHAT THE CLIENT SAID WHEN INTERVIEWED
+WHAT THEY SAID WHEN INTERVIEWED
 ${interviewLines || '(they were not interviewed)'}
 
 DECISIONS ALREADY LOCKED — do not raise these again

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Briefcase, PenTool, Check } from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
-	import { ROLE_COPY, type BriefRole } from '$lib/types';
+	import { ROLE_COPY, PROJECT_TYPES, type BriefRole, type ProjectType } from '$lib/types';
 
 	/**
 	 * The role question comes first because everything after it reads differently
@@ -15,6 +15,9 @@
 		{ key: 'commissioning', icon: Briefcase },
 		{ key: 'delivering', icon: PenTool }
 	];
+
+	const TYPE_KEYS = Object.keys(PROJECT_TYPES) as ProjectType[];
+	let projectType = $derived(briefStore.meta.projectType);
 </script>
 
 <div class="space-y-6">
@@ -57,6 +60,31 @@
 							>{ROLE_COPY[key].hint}</span
 						>
 					</span>
+				</button>
+			{/each}
+		</div>
+	</fieldset>
+
+	<fieldset class="space-y-2.5">
+		<legend class="text-sm font-medium text-ink">What kind of project is it?</legend>
+		<p class="text-xs text-ink-faint">
+			The AI reviews it as a specialist in that field — and knows what briefs of that
+			kind usually forget.
+		</p>
+
+		<div class="flex flex-wrap gap-2">
+			{#each TYPE_KEYS as key}
+				{@const on = projectType === key}
+				<button
+					type="button"
+					aria-pressed={on}
+					onclick={() => briefStore.updateMeta({ projectType: on ? null : key })}
+					class="rounded-full border px-3.5 py-2 text-xs font-medium transition
+						{on
+						? 'border-accent bg-accent text-on-accent'
+						: 'border-border bg-surface-alt/40 text-ink-soft hover:border-accent/40 hover:text-accent'}"
+				>
+					{PROJECT_TYPES[key].label}
 				</button>
 			{/each}
 		</div>

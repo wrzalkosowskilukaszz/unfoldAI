@@ -25,7 +25,14 @@ function emptySection(): SectionState {
 }
 
 function emptyMeta(): ProjectMeta {
-	return { projectName: '', clientName: '', briefDate: '', launchDate: '', role: null };
+	return {
+		projectName: '',
+		clientName: '',
+		briefDate: '',
+		launchDate: '',
+		role: null,
+		projectType: null
+	};
 }
 
 function emptySections(): Record<SectionKey, SectionState> {
@@ -65,6 +72,7 @@ function normalizeBrief(brief: SavedBrief): SavedBrief {
 	if (brief.polishedBrief === undefined) brief.polishedBrief = null;
 	// Briefs written before the role question existed simply never answered it.
 	if (brief.meta && brief.meta.role === undefined) brief.meta.role = null;
+	if (brief.meta && brief.meta.projectType === undefined) brief.meta.projectType = null;
 	for (const key of SECTION_ORDER) {
 		if (!brief.sections[key]) brief.sections[key] = emptySection();
 	}
@@ -73,6 +81,9 @@ function normalizeBrief(brief: SavedBrief): SavedBrief {
 
 class BriefStore {
 	briefs = $state<Record<string, SavedBrief>>({});
+	/** Drives the save indicator. 'error' is sticky until the next good write. */
+	saveState = $state<'idle' | 'saved' | 'error'>('idle');
+	savedAt = $state<number>(0);
 	activeBriefId = $state<string | null>(null);
 	private fallbackBrief = makeBrief();
 
@@ -151,10 +162,23 @@ class BriefStore {
 
 	private persist() {
 		if (!browser) return;
-		localStorage.setItem(
-			STORAGE_KEY,
-			JSON.stringify({ briefs: this.briefs, activeBriefId: this.activeBriefId })
-		);
+		try {
+			localStorage.setItem(
+				STORAGE_KEY,
+				JSON.stringify({ briefs: this.briefs, activeBriefId: this.activeBriefId })
+			);
+		} catch (err) {
+			// Quota exceeded or storage blocked (private browsing, disabled cookies).
+			// Silently losing someone's brief is the worst thing this app could do.
+			this.saveState = 'error';
+			console.error('Could not save to localStorage', err);
+			return;
+		}
+
+		// Writing is synchronous, so "saving" would never be seen. What people
+		// actually need is proof it happened — so show "Saved" and let it settle.
+		this.saveState = 'saved';
+		this.savedAt = Date.now();
 	}
 
 	private touch() {
@@ -393,7 +417,11 @@ class BriefStore {
 
 	setFindings(findings: Finding[]) {
 		// A re-review replaces open findings but never discards locked decisions.
-		const locked = this.active.findings.filter((f) => f.status === 'confirmed');
+		// Dismissed findings are as deliberate as confirmed ones — a re-review that
+		// resurrected them would be the nagging machine we promised not to build.
+		const locked = this.active.findings.filter(
+			(f) => f.status === 'confirmed' || f.status === 'dismissed'
+		);
 		const lockedDimensions = new Set(locked.map((f) => `${f.dimension}::${f.title}`));
 		const fresh = findings.filter((f) => !lockedDimensions.has(`${f.dimension}::${f.title}`));
 		this.active.findings = [...locked, ...fresh];
@@ -412,12 +440,22 @@ class BriefStore {
 		this.persist();
 	}
 
+	dismissFinding(id: string) {
+		const finding = this.active.findings.find((f) => f.id === id);
+		if (!finding) return;
+		finding.status = 'dismissed';
+		finding.dismissedAt = new Date().toISOString();
+		this.touch();
+		this.persist();
+	}
+
 	reopenFinding(id: string) {
 		const finding = this.active.findings.find((f) => f.id === id);
 		if (!finding) return;
 		finding.status = 'open';
 		finding.resolution = undefined;
 		finding.resolvedAt = undefined;
+		finding.dismissedAt = undefined;
 		this.touch();
 		this.persist();
 	}

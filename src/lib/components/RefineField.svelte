@@ -32,6 +32,7 @@
 					sectionName: sectionKey,
 					rawInput: briefStore.sections[sectionKey].raw,
 					role: briefStore.meta.role,
+					projectType: briefStore.meta.projectType,
 					regenerate
 				})
 			});

@@ -106,6 +106,12 @@ export interface SavedBrief {
 	reviewedAt: string | null;
 	/** Cached narrative rewrite — expensive to generate, so it survives navigation. */
 	polishedBrief: string | null;
+	/**
+	 * When this brief was last written to a file the user keeps. Everything lives
+	 * in one localStorage key, so a cleared browser is total, permanent loss —
+	 * this is what lets the app say so before it happens.
+	 */
+	lastExportedAt: string | null;
 }
 
 /** Default steps, for when no template is chosen. Prefer stepLabelsFor(). */

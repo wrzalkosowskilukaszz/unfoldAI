@@ -72,6 +72,7 @@ function makeBrief(overrides: Partial<SavedBrief> = {}): SavedBrief {
 		findings: [],
 		reviewedAt: null,
 		polishedBrief: null,
+		lastExportedAt: null,
 		...overrides
 	};
 }
@@ -82,6 +83,7 @@ function normalizeBrief(brief: SavedBrief): SavedBrief {
 	if (!Array.isArray(brief.findings)) brief.findings = [];
 	if (brief.reviewedAt === undefined) brief.reviewedAt = null;
 	if (brief.polishedBrief === undefined) brief.polishedBrief = null;
+	if (brief.lastExportedAt === undefined) brief.lastExportedAt = null;
 	// Briefs written before the role question existed simply never answered it.
 	if (brief.meta && brief.meta.role === undefined) brief.meta.role = null;
 	if (brief.meta && brief.meta.projectType === undefined) brief.meta.projectType = null;
@@ -322,6 +324,29 @@ class BriefStore {
 		this.briefs[copy.id] = copy;
 		this.persist();
 		return copy.id;
+	}
+
+	/** Call whenever a brief leaves the app as something the user keeps. */
+	markExported(id: string) {
+		const b = this.briefs[id];
+		if (!b) return;
+		b.lastExportedAt = new Date().toISOString();
+		this.persist();
+	}
+
+	/**
+	 * True when there is real work here that has never been written to a file, or
+	 * has changed since it was. Content-based, so an empty brief never nags.
+	 */
+	needsBackup(brief: SavedBrief): boolean {
+		const hasContent = Object.values(brief.sections ?? {}).some((sec) => sec?.raw?.trim());
+		if (!hasContent) return false;
+		if (!brief.lastExportedAt) return true;
+		return new Date(brief.updatedAt) > new Date(brief.lastExportedAt);
+	}
+
+	get activeNeedsBackup(): boolean {
+		return this.needsBackup(this.active);
 	}
 
 	exportBriefJSON(id: string): string {

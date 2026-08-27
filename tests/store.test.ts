@@ -313,3 +313,52 @@ describe('AI disclosure', () => {
 		expect(consent.seen, 'fail towards showing it, never towards skipping it').toBe(false);
 	});
 });
+
+describe('unexported work is detectable', () => {
+	// Everything lives in one localStorage key, so a cleared browser is permanent
+	// loss. These rules decide whether the app is allowed to say so.
+	it('says nothing about an empty brief', async () => {
+		const store = await freshStore();
+		store.createBrief();
+		expect(store.activeNeedsBackup, 'an empty brief has nothing to lose').toBe(false);
+	});
+
+	it('flags a brief with content that has never been exported', async () => {
+		const store = await freshStore();
+		store.createBrief();
+		store.setRaw('objectives', 'Refresh the sauce range');
+		expect(store.activeNeedsBackup).toBe(true);
+	});
+
+	it('clears once exported', async () => {
+		const store = await freshStore();
+		const id = store.createBrief();
+		store.setRaw('objectives', 'Refresh the sauce range');
+		store.markExported(id);
+		expect(store.activeNeedsBackup).toBe(false);
+		expect(store.briefs[id].lastExportedAt).toBeTruthy();
+	});
+
+	it('flags again once the brief changes after an export', async () => {
+		const store = await freshStore();
+		const id = store.createBrief();
+		store.setRaw('objectives', 'first pass');
+		store.markExported(id);
+		expect(store.activeNeedsBackup).toBe(false);
+
+		// The exported file is now stale — the user would lose the newer edit.
+		store.briefs[id].lastExportedAt = new Date(Date.now() - 60_000).toISOString();
+		store.setRaw('objectives', 'a later, better pass');
+		expect(store.activeNeedsBackup, 'edits after an export are unprotected again').toBe(true);
+	});
+
+	it('treats a brief written before the field existed as unexported', async () => {
+		localStorage.setItem(
+			'unfold-ai-briefs-v1',
+			JSON.stringify({ activeBriefId: 'b1', briefs: { b1: briefFixture() } })
+		);
+		const store = await freshStore();
+		expect(store.briefs.b1.lastExportedAt).toBeNull();
+		expect(store.needsBackup(store.briefs.b1), 'never assume old work is safe').toBe(true);
+	});
+});

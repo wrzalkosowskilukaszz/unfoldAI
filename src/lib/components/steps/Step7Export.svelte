@@ -76,6 +76,7 @@
 	);
 
 	async function copyToClipboard() {
+		briefStore.markExported(briefStore.activeBriefId!);
 		try {
 			await navigator.clipboard.writeText(fullMarkdown);
 			copied = true;
@@ -88,6 +89,7 @@
 	}
 
 	function printBrief() {
+		briefStore.markExported(briefStore.activeBriefId!);
 		window.print();
 	}
 

@@ -104,6 +104,7 @@
 		a.download = `${briefStore.briefs[id]?.name || 'brief'}.json`;
 		a.click();
 		URL.revokeObjectURL(url);
+		briefStore.markExported(id);
 	}
 
 	function handleExport(id: string, e: MouseEvent) {
@@ -203,6 +204,13 @@
 							/>
 						{:else}
 							<span class="truncate text-sm font-semibold text-ink">{brief.name}</span>
+							{#if briefStore.needsBackup(brief)}
+								<!-- Not a warning: this is the normal state until someone exports. -->
+								<span
+									class="h-1.5 w-1.5 shrink-0 rounded-full bg-attention"
+									title="Not exported yet — this brief exists only in this browser"
+								></span>
+							{/if}
 						{/if}
 					</div>
 					<!-- Touch: one 44px target opening a sheet. Four 36px buttons in a row

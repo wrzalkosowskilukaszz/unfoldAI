@@ -3,6 +3,8 @@
 	import DOMPurify from 'isomorphic-dompurify';
 	import {
 		Copy,
+		FileDown,
+		HardDriveDownload,
 		Printer,
 		Check,
 		AlertTriangle,
@@ -90,6 +92,30 @@
 		}
 	}
 
+	/**
+	 * A .md file, because Notion, Obsidian, Craft and Google Docs all import
+	 * markdown directly — Notion via Import → Markdown. That covers the
+	 * "get this into my workspace" need without an API integration, which would
+	 * mean OAuth, a server to hold tokens, and a new company in the privacy
+	 * policy. The clipboard already pastes into Notion; this is for when someone
+	 * wants a real page rather than a paste.
+	 */
+	function downloadMarkdown() {
+		const name = (briefStore.meta.projectName.trim() || 'brief')
+			.replace(/[^a-z0-9\-_ ]/gi, '')
+			.trim()
+			.slice(0, 60);
+		const blob = new Blob([fullMarkdown], { type: 'text/markdown;charset=utf-8' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `${name || 'brief'}.md`;
+		a.click();
+		URL.revokeObjectURL(url);
+		briefStore.markExported(briefStore.activeBriefId!);
+		analytics.briefExported('download', hasOpenItems);
+	}
+
 	function printBrief() {
 		briefStore.markExported(briefStore.activeBriefId!);
 		analytics.briefExported('print', hasOpenItems);
@@ -140,6 +166,24 @@
 </script>
 
 <div class="space-y-6">
+	{#if briefStore.activeNeedsBackup}
+		<!--
+			Shown here and only while true: this is the last screen before someone
+			leaves, and it is the only moment where "save a copy" is both relevant
+			and actionable. It disappears as soon as a copy exists.
+		-->
+		<div
+			class="flex flex-wrap items-center gap-3 rounded-xl border border-attention/30 bg-attention-wash/60 px-4 py-3 print:hidden"
+		>
+			<HardDriveDownload size={17} class="shrink-0 text-attention" />
+			<p class="min-w-0 flex-1 text-sm leading-relaxed text-ink-soft">
+				<span class="font-semibold text-ink">This brief exists only in this browser.</span>
+				Take a copy below — clearing your browser data would remove it permanently, and we have no
+				backup to restore from.
+			</p>
+		</div>
+	{/if}
+
 	<div class="flex flex-wrap items-end justify-between gap-4 print:hidden">
 		<div>
 			<h2 class="font-display text-xl font-semibold text-ink">Export</h2>
@@ -201,6 +245,15 @@
 					<Copy size={14} />
 					Copy
 				{/if}
+			</button>
+
+			<button
+				type="button"
+				onclick={downloadMarkdown}
+				class="flex items-center gap-1.5 min-h-11 rounded-full border border-border bg-surface px-4 text-xs font-medium text-ink-soft lg:min-h-0 lg:py-2 transition hover:bg-surface-hover"
+			>
+				<FileDown size={14} />
+				Download .md
 			</button>
 
 			<button

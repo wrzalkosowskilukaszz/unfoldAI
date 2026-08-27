@@ -39,7 +39,7 @@ the single source of truth for what is left.
 
 | # | Finding | Status |
 |---|---|---|
-| 11 | Stepper cells are 36×44px at 320px — passes WCAG 2.5.8 AA (24px), fails the 44px AAA/Apple HIG target. Let it scroll below ~360px. | ☐ open |
+| 11 | ~~Stepper cells are 36×44px at 320px.~~ **DONE 27 Aug.** The row scrolls instead of compressing: every cell holds 44px, the page itself never overflows, the active step auto-scrolls into view, and the clipped edge fades — tracking scroll position, so it fades left, right or both depending on what is actually hidden. | ☑ done |
 | 12 | Cube Shifter SVG is inlined for theme-aware fills: 55K gzip on every wizard load. Lazy-load behind the loading state. | ☐ open |
 | 13 | Safari and Firefox untested. SMIL and `:has()` are the risk areas. | ☐ open |
 | 14 | All copy hard-coded English; no i18n scaffolding. | ☐ open |

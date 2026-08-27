@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, Upload, PenLine, ScanSearch, FileCheck } from '@lucide/svelte';
+	import { Plus, Upload, PenLine, ScanSearch, FileCheck, Lock } from '@lucide/svelte';
 
 	let { onstart, onimport }: { onstart: () => void; onimport: () => void } = $props();
 
@@ -74,5 +74,21 @@
 				<p class="mt-2 pl-[2.375rem] text-sm leading-relaxed text-ink-soft">{item.body}</p>
 			</div>
 		{/each}
+	</div>
+
+	<!--
+		Not a fourth step: the three above are a sequence, and privacy is a standing
+		property of the tool rather than a stage in it. It gets its own quieter line.
+	-->
+	<div class="flex items-start gap-3 rounded-2xl bg-sand px-4 py-3.5 sm:items-center">
+		<span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface text-accent sm:mt-0">
+			<Lock size={14} />
+		</span>
+		<p class="text-sm leading-relaxed text-ink-soft">
+			<span class="font-semibold text-ink">Your briefs stay on your device.</span>
+			Nothing is uploaded to us and we keep no copy. Text goes to the AI only when you ask for it,
+			and it is never used to train a model.
+			<a href="/privacy" class="font-medium text-accent hover:underline">How this works</a>
+		</p>
 	</div>
 </section>

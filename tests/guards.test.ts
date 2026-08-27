@@ -196,3 +196,27 @@ describe('saving cannot fail silently', () => {
 		expect(briefStore.saveState).toBe('saved');
 	});
 });
+
+describe('what the beta password does and does not hide', () => {
+	// A privacy policy behind a login is useless to a visitor, a regulator, or
+	// App Store review — so the gate must have an explicit public allowlist.
+	it('keeps the legal pages and the unlock page public', async () => {
+		const src = await import('node:fs').then((fs) =>
+			fs.readFileSync('src/hooks.server.ts', 'utf8')
+		);
+		for (const p of ['/privacy', '/terms', 'UNLOCK_PATH']) {
+			expect(src, `${p} must be in the public allowlist`).toContain(p);
+		}
+		expect(src).toContain('PUBLIC_PATHS.has(pathname)');
+	});
+
+	it('still gates everything else', async () => {
+		const src = await import('node:fs').then((fs) =>
+			fs.readFileSync('src/hooks.server.ts', 'utf8')
+		);
+		// The gate must be a denylist-by-default: anything not explicitly public
+		// is protected. Guard against someone inverting this later.
+		expect(src).toContain('if (isAuthConfigured() && !PUBLIC_PATHS.has(pathname))');
+		expect(src).toContain('redirect(303, UNLOCK_PATH)');
+	});
+});

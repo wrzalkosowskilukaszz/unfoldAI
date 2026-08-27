@@ -3,6 +3,12 @@ import { checkRateLimit } from '$lib/server/rateLimit';
 import { AUTH_COOKIE, isAuthConfigured, isValidSession } from '$lib/server/auth';
 
 const UNLOCK_PATH = '/unlock';
+/**
+ * Reachable without the beta password. The legal pages have to be public — a
+ * privacy policy nobody can read is not a privacy policy — and the unlock page
+ * is what a visitor from LinkedIn or a portfolio link lands on.
+ */
+const PUBLIC_PATHS = new Set([UNLOCK_PATH, '/privacy', '/terms']);
 
 /**
  * Guards every request in one place, so a new route can't accidentally ship
@@ -13,7 +19,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const isApi = pathname.startsWith('/api/');
 
 	// 1. Access gate. Only active when APP_PASSWORD is set.
-	if (isAuthConfigured() && pathname !== UNLOCK_PATH) {
+	if (isAuthConfigured() && !PUBLIC_PATHS.has(pathname)) {
 		if (!isValidSession(event.cookies.get(AUTH_COOKIE))) {
 			if (isApi) {
 				return new Response(JSON.stringify({ message: 'Session expired. Please unlock again.' }), {

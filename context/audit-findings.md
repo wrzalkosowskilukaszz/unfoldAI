@@ -32,7 +32,7 @@ the single source of truth for what is left.
 
 | # | Finding | Status |
 |---|---|---|
-| 9 | **No URL state.** Path stays `/` at gallery, inside a brief and at step 3. No deep links, no meaningful back button, nothing for universal links to point at. Fix: `/brief/[id]/[step]`. | ☐ open |
+| 9 | ~~No URL state.~~ **DONE 27 Aug.** Position lives in the URL as `?b=<id>&s=<step>`. Back leaves the brief, Forward returns, refresh lands on the same step, and stale or malformed links fall back to the gallery instead of stranding you. Query params rather than `/brief/[id]/[step]` **on purpose**: brief ids are local UUIDs, so a "shareable" path would be a link nobody else can open — params buy the same back/refresh behaviour without restructuring every route. Revisit if briefs ever live server-side. | ☑ done |
 | 10 | No staging environment — production is the first place any change meets a user. | ☐ open |
 
 ## Future / tech debt

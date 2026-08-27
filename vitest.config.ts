@@ -13,7 +13,8 @@ export default defineConfig({
 		alias: {
 			$lib: path.resolve('./src/lib'),
 			'$app/environment': path.resolve('./tests/mocks/app-environment.ts'),
-			'$env/dynamic/private': path.resolve('./tests/mocks/env-private.ts')
+			'$env/dynamic/private': path.resolve('./tests/mocks/env-private.ts'),
+			'$app/navigation': path.resolve('./tests/mocks/app-navigation.ts')
 		},
 		conditions: ['browser']
 	},

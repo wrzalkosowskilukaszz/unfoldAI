@@ -362,3 +362,47 @@ describe('unexported work is detectable', () => {
 		expect(store.needsBackup(store.briefs.b1), 'never assume old work is safe').toBe(true);
 	});
 });
+
+describe('the URL decides where you are', () => {
+	async function withBrief() {
+		vi.resetModules();
+		const { briefStore } = await import('$lib/stores/brief.svelte');
+		const id = briefStore.createBrief();
+		const { readPosition } = await import('$lib/navigation.svelte');
+		return { id, readPosition };
+	}
+
+	it('restores a brief and step from the URL', async () => {
+		const { id, readPosition } = await withBrief();
+		const pos = readPosition(new URL(`http://x/?b=${id}&s=4`));
+		expect(pos).toEqual({ view: 'wizard', briefId: id, step: 4 });
+	});
+
+	it('falls back to the gallery for a brief that no longer exists', async () => {
+		const { readPosition } = await withBrief();
+		// A stale link must not open a blank wizard bound to a deleted brief.
+		const pos = readPosition(new URL('http://x/?b=deleted&s=3'));
+		expect(pos.view).toBe('gallery');
+		expect(pos.briefId).toBeNull();
+	});
+
+	it('survives a malformed or hostile step', async () => {
+		const { id, readPosition } = await withBrief();
+		for (const bad of ['notanumber', '-5', '0', '', 'NaN', '1e999']) {
+			const pos = readPosition(new URL(`http://x/?b=${id}&s=${bad}`));
+			expect(pos.view, `s=${bad}`).toBe('wizard');
+			expect(pos.step, `s=${bad} must land on a real step`).toBeGreaterThanOrEqual(1);
+			expect(Number.isFinite(pos.step), `s=${bad}`).toBe(true);
+		}
+	});
+
+	it('reads the import view', async () => {
+		const { readPosition } = await withBrief();
+		expect(readPosition(new URL('http://x/?new=doc')).view).toBe('import');
+	});
+
+	it('treats a bare URL as the gallery', async () => {
+		const { readPosition } = await withBrief();
+		expect(readPosition(new URL('http://x/')).view).toBe('gallery');
+	});
+});

@@ -15,6 +15,9 @@
 	import Step7Export from '$lib/components/steps/Step7Export.svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
 	import Seo from '$lib/components/Seo.svelte';
+	import { page } from '$app/state';
+	import { untrack } from 'svelte';
+	import { go, replace, readPosition } from '$lib/navigation.svelte';
 
 	/**
 	 * The wizard's shape comes from the brief's template: Basics, one step per
@@ -29,9 +32,46 @@
 
 	let view = $state<'gallery' | 'wizard' | 'import'>('gallery');
 
+	/**
+	 * The URL drives the view, not the other way round — which is what makes the
+	 * browser's back and forward buttons work without any handling of our own,
+	 * and what lets a refresh land where you were.
+	 */
+	$effect(() => {
+		// The URL is the ONLY dependency. Everything else is untracked because this
+		// effect writes to the store, and reading what it writes made it retrigger
+		// itself — which left the view snapping back to the gallery while the URL
+		// still pointed at a brief.
+		const url = page.url;
+		untrack(() => {
+			const pos = readPosition(url);
+			if (pos.view !== view) view = pos.view;
+			if (pos.view === 'wizard' && pos.briefId) {
+				if (briefStore.activeBriefId !== pos.briefId) briefStore.openBrief(pos.briefId);
+				const step = Math.min(pos.step ?? 1, briefStore.totalSteps);
+				if (briefStore.step !== step) briefStore.goToStep(step);
+			}
+		});
+	});
+
 	function openBrief(id: string) {
 		briefStore.openBrief(id);
-		view = 'wizard';
+		go({ view: 'wizard', briefId: id, step: briefStore.step });
+	}
+
+	/** Steps replace rather than push: Back should leave the brief, not crawl
+	 *  through every step someone clicked on the way in. */
+	function jumpToStep(step: number) {
+		briefStore.goToStep(step);
+		replace({ view: 'wizard', briefId: briefStore.activeBriefId, step: briefStore.step });
+	}
+
+	function toGallery() {
+		go({ view: 'gallery', briefId: null, step: null });
+	}
+
+	function toImport() {
+		go({ view: 'import', briefId: null, step: null });
 	}
 </script>
 
@@ -106,9 +146,9 @@
 
 			<div class="mt-16 border-t border-border pt-10">
 				{#if view === 'import'}
-					<ImportDocument oncancel={() => (view = 'gallery')} onopen={openBrief} />
+					<ImportDocument oncancel={toGallery} onopen={openBrief} />
 				{:else}
-					<BriefsList onopen={openBrief} onuploaddoc={() => (view = 'import')} />
+					<BriefsList onopen={openBrief} onuploaddoc={toImport} />
 				{/if}
 			</div>
 		</main>
@@ -125,7 +165,7 @@
 				<div class="flex items-center gap-2">
 					<button
 						type="button"
-						onclick={() => (view = 'gallery')}
+						onclick={toGallery}
 						aria-label="All briefs"
 						class="-ml-1.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink-soft active:bg-ink/[0.06]"
 					>
@@ -153,7 +193,7 @@
 				</div>
 
 				<div class="mt-3">
-					<Stepper current={briefStore.step} onjump={(step) => briefStore.goToStep(step)} />
+					<Stepper current={briefStore.step} onjump={jumpToStep} />
 					<div class="mt-1 flex justify-center">
 						<SaveIndicator compact />
 					</div>
@@ -180,7 +220,7 @@
 
 				<button
 					type="button"
-					onclick={() => (view = 'gallery')}
+					onclick={toGallery}
 					class="mt-7 flex items-center gap-1 text-xs font-medium text-ink-faint transition-colors hover:text-accent"
 				>
 					<ChevronLeft size={13} />
@@ -194,7 +234,7 @@
 				</h2>
 
 				<div class="mt-7">
-					<StepNav current={briefStore.step} onjump={(step) => briefStore.goToStep(step)} />
+					<StepNav current={briefStore.step} onjump={jumpToStep} />
 				</div>
 
 				<div class="mt-auto space-y-2 pt-8">
@@ -229,7 +269,7 @@
 				>
 					<button
 						type="button"
-						onclick={() => briefStore.back()}
+						onclick={() => jumpToStep(briefStore.step - 1)}
 						disabled={briefStore.step === 1}
 						class="flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium text-ink-soft transition-colors hover:bg-ink/[0.04] disabled:cursor-not-allowed disabled:opacity-30"
 					>
@@ -240,7 +280,7 @@
 					{#if briefStore.step < totalSteps}
 						<button
 							type="button"
-							onclick={() => briefStore.next()}
+							onclick={() => jumpToStep(briefStore.step + 1)}
 							class="flex items-center gap-1.5 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-background transition-transform hover:-translate-y-0.5"
 						>
 							{stepLabels[briefStore.step]}
@@ -257,7 +297,7 @@
 				>
 					<button
 						type="button"
-						onclick={() => briefStore.back()}
+						onclick={() => jumpToStep(briefStore.step - 1)}
 						disabled={briefStore.step === 1}
 						class="flex min-h-11 items-center gap-1.5 rounded-full px-4 text-sm font-medium text-ink-soft transition-colors active:bg-ink/[0.06] disabled:opacity-30"
 					>
@@ -268,7 +308,7 @@
 					{#if briefStore.step < totalSteps}
 						<button
 							type="button"
-							onclick={() => briefStore.next()}
+							onclick={() => jumpToStep(briefStore.step + 1)}
 							class="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-ink px-5 text-sm font-semibold text-background transition-transform active:scale-[0.98]"
 						>
 							{stepLabels[briefStore.step]}

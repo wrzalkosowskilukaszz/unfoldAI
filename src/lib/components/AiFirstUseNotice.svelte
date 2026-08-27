@@ -44,7 +44,7 @@
 					resolve to violet, and a warm ground muddies them.
 				-->
 				<div
-					class="relative flex justify-center overflow-hidden bg-white px-6 pt-7 pb-4"
+					class="relative flex justify-center overflow-hidden bg-white px-6 pt-3 pb-1 sm:pt-7 sm:pb-4"
 				>
 					<!-- A soft violet bloom behind the mark, so it sits on the plate
 					     rather than floating on flat white. -->
@@ -54,14 +54,14 @@
 						style="background: radial-gradient(58% 62% at 50% 42%, var(--c-accent-wash), transparent 72%)"
 					></div>
 					{#await import('$lib/components/ShieldAnim.svelte') then { default: ShieldAnim }}
-						<div class="relative [&>svg]:h-[13rem] [&>svg]:w-[13rem] sm:[&>svg]:h-[16.5rem] sm:[&>svg]:w-[16.5rem]">
+						<div class="relative [&>svg]:h-[5rem] [&>svg]:w-[5rem] sm:[&>svg]:h-[16.5rem] sm:[&>svg]:w-[16.5rem]">
 							<ShieldAnim size={264} />
 						</div>
 					{/await}
 				</div>
 
-				<div class="flex flex-col gap-3.5 px-7 pt-6 pb-6">
-					<div class="flex flex-col gap-2">
+				<div class="flex flex-col gap-2.5 px-6 pt-4 pb-4 sm:gap-3.5 sm:px-7 sm:pt-6 sm:pb-6">
+					<div class="flex flex-col gap-1.5">
 						<p class="text-[0.68rem] font-semibold tracking-[0.16em] text-accent uppercase">
 							One-time notice
 						</p>
@@ -73,34 +73,30 @@
 						</h2>
 					</div>
 
-					<p class="text-[0.94rem] leading-relaxed text-ink-soft">
-						Everything you've written so far has stayed on this device. To do this, the text of
-						your brief is sent to <span class="font-medium text-ink">Claude</span> — only when you
-						ask, like now.
+					<p class="text-[0.88rem] leading-relaxed text-ink-soft sm:text-[0.94rem]">
+						Your brief has stayed on this device. To do this, its text is sent to
+						<span class="font-medium text-ink">Claude</span> — only when you ask, like now.
 					</p>
 
-					<ul class="flex flex-col gap-2 border-t border-border pt-3.5">
-						<li class="flex gap-2.5 text-[0.9rem] leading-relaxed text-ink-soft">
+					<ul class="flex flex-col gap-1.5 border-t border-border pt-3 sm:gap-2 sm:pt-3.5">
+						<li class="flex gap-2.5 text-[0.85rem] leading-relaxed text-ink-soft sm:text-[0.9rem]">
 							<Check size={15} class="mt-[3px] shrink-0 text-accent" />
 							<span>We never receive a copy. Nothing is stored on our servers.</span>
 						</li>
-						<li class="flex gap-2.5 text-[0.9rem] leading-relaxed text-ink-soft">
+						<li class="flex gap-2.5 text-[0.85rem] leading-relaxed text-ink-soft sm:text-[0.9rem]">
 							<Check size={15} class="mt-[3px] shrink-0 text-accent" />
 							<span>It isn't used to train any model.</span>
 						</li>
-						<li class="flex gap-2.5 text-[0.9rem] leading-relaxed text-ink-soft">
+						<li class="flex gap-2.5 text-[0.85rem] leading-relaxed text-ink-soft sm:text-[0.9rem]">
 							<Check size={15} class="mt-[3px] shrink-0 text-accent" />
-							<span>
-								You decide what goes in — roles work as well as names, and
-								<span class="text-ink">"the marketing director"</span> surveys just as well.
-							</span>
+							<span>You choose what goes in. Roles survey as well as names.</span>
 						</li>
 					</ul>
 				</div>
 			</div>
 
 			<div
-				class="flex shrink-0 flex-col gap-2.5 border-t border-border bg-surface-alt/50 px-7 py-4"
+				class="flex shrink-0 flex-col gap-2 border-t border-border bg-surface-alt/50 px-6 py-3.5 sm:gap-2.5 sm:px-7 sm:py-4"
 			>
 				<button
 					type="button"

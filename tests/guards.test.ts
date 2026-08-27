@@ -316,3 +316,55 @@ describe('the gate can be re-engaged and is hard to guess at', () => {
 		expect(logLine, 'nor its length, which would narrow a guess').not.toMatch(/\.length/);
 	});
 });
+
+describe('analytics can never leak brief content', () => {
+	// Briefs carry client budgets and strategy. Every event must be a count, an
+	// enum or a boolean — this is the guard against someone adding a "helpful"
+	// property later.
+	it('sends only counts, enums and booleans', async () => {
+		const sent: { event: string; props: unknown }[] = [];
+		vi.doMock('@vercel/analytics', () => ({
+			track: (event: string, props: unknown) => sent.push({ event, props })
+		}));
+		vi.resetModules();
+		const { analytics } = await import('$lib/analytics');
+
+		const SECRET = 'Zorka Foods budget 40,000 EUR, launch March';
+		analytics.briefCreated('scratch');
+		analytics.templateChosen('packaging');
+		analytics.roleChosen('commissioning');
+		analytics.surveyRun({ template: 'packaging', findings: 6, sections: 5 });
+		analytics.findingSettled('dismissed', 'attention');
+		analytics.briefExported('copy', true);
+
+		expect(sent.length).toBeGreaterThan(0);
+		const serialised = JSON.stringify(sent);
+		expect(serialised, 'no brief content may ever appear').not.toContain(SECRET);
+		expect(serialised).not.toContain('Zorka');
+
+		for (const { props } of sent) {
+			for (const v of Object.values((props ?? {}) as Record<string, unknown>)) {
+				expect(
+					['string', 'number', 'boolean'].includes(typeof v) || v === null,
+					`event property must be primitive, got ${typeof v}`
+				).toBe(true);
+				if (typeof v === 'string') {
+					expect(v.length, 'a long string is a smell — labels only').toBeLessThan(40);
+				}
+			}
+		}
+		vi.doUnmock('@vercel/analytics');
+	});
+
+	it('never breaks the app when the vendor throws', async () => {
+		vi.doMock('@vercel/analytics', () => ({
+			track: () => {
+				throw new Error('blocked by an ad blocker');
+			}
+		}));
+		vi.resetModules();
+		const { analytics } = await import('$lib/analytics');
+		expect(() => analytics.templateChosen('website')).not.toThrow();
+		vi.doUnmock('@vercel/analytics');
+	});
+})

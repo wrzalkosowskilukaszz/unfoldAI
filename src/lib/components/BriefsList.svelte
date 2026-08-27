@@ -12,6 +12,7 @@
 		AlertTriangle
 	} from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
+	import { analytics } from '$lib/analytics';
 	import { totalStepsFor } from '$lib/types';
 	import type { SavedBrief } from '$lib/types';
 	import FirstRun from '$lib/components/FirstRun.svelte';
@@ -58,6 +59,7 @@
 
 	function handleNew() {
 		const id = briefStore.createBrief();
+		analytics.briefCreated('scratch');
 		onopen(id);
 	}
 
@@ -105,6 +107,7 @@
 		a.click();
 		URL.revokeObjectURL(url);
 		briefStore.markExported(id);
+		analytics.briefExported('download', false);
 	}
 
 	function handleExport(id: string, e: MouseEvent) {

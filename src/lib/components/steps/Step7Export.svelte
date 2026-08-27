@@ -12,6 +12,7 @@
 		ScanSearch
 	} from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
+	import { analytics } from '$lib/analytics';
 	import SurveySummary from '$lib/components/SurveySummary.svelte';
 	import { aiConsent } from '$lib/stores/aiConsent.svelte';
 	import { compileBriefBody, compileBriefMarkdown } from '$lib/markdown';
@@ -77,6 +78,7 @@
 
 	async function copyToClipboard() {
 		briefStore.markExported(briefStore.activeBriefId!);
+		analytics.briefExported('copy', hasOpenItems);
 		try {
 			await navigator.clipboard.writeText(fullMarkdown);
 			copied = true;
@@ -90,6 +92,7 @@
 
 	function printBrief() {
 		briefStore.markExported(briefStore.activeBriefId!);
+		analytics.briefExported('print', hasOpenItems);
 		window.print();
 	}
 

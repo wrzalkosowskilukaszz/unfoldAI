@@ -22,7 +22,7 @@
 				result — and nothing else is.
 			</li>
 			<li>Anthropic does not use it to train their models.</li>
-			<li>There is no analytics, no advertising and no tracking of any kind.</li>
+			<li>Analytics count anonymous actions only — never who you are, and never what you wrote.</li>
 		</ul>
 	</div>
 
@@ -70,6 +70,13 @@
 			>
 		</li>
 		<li><strong>Standard hosting logs</strong> — kept by our host in the normal way.</li>
+		<li>
+			<strong>Anonymous usage counts</strong> — which template was chosen, that a survey ran and
+			how many findings it produced, whether a finding was resolved or set aside, and that a brief
+			was exported. These are counts and labels only. <strong
+				>No brief content, no client names and nothing identifying you is ever included</strong
+			>, and there is no cookie and no cross-site tracking.
+		</li>
 	</ul>
 
 	<h2>Who else is involved</h2>
@@ -79,7 +86,11 @@
 			<strong>Anthropic PBC</strong> (US) — the AI that produces surveys and refinements. Receives
 			brief text only when you ask for it.
 		</li>
-		<li><strong>Vercel Inc.</strong> (US) — hosting. Sees requests, not brief content.</li>
+		<li>
+			<strong>Vercel Inc.</strong> (US) — hosting, and the anonymous usage counts above. Sees
+			requests, not brief content. We deliberately kept analytics with our existing host rather
+			than adding another company to this list.
+		</li>
 		<li>
 			<strong>Upstash</strong> — rate-limiting counters. Receives a key derived from your IP and a
 			number. Nothing else.
@@ -144,8 +155,9 @@
 	<h2>Cookies</h2>
 	<p>
 		One cookie, which records that you entered the beta password so you are not asked on every page.
-		It contains no personal data. There are no analytics, advertising or tracking cookies, which is
-		why this site has no cookie banner — there is nothing to consent to.
+		It contains no personal data. The usage counting described above is <strong>cookieless</strong> —
+		it sets nothing on your device and cannot follow you to another site. There are no advertising or
+		tracking cookies, which is why this site has no cookie banner: there is nothing to consent to.
 	</p>
 
 	<h2>Changes</h2>

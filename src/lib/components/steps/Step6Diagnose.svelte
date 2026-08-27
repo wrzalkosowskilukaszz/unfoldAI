@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { ScanSearch, Loader2, AlertTriangle, RefreshCw, Sparkles } from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
+	import { analytics } from '$lib/analytics';
 	import { aiConsent } from '$lib/stores/aiConsent.svelte';
 	import FindingCard from '$lib/components/FindingCard.svelte';
 	import CubeShifter from '$lib/components/CubeShifter.svelte';
@@ -98,6 +99,11 @@
 
 			const data = await res.json();
 			briefStore.setFindings(data.findings as Finding[]);
+			analytics.surveyRun({
+				template: briefStore.meta.projectType,
+				findings: (data.findings as Finding[]).length,
+				sections: briefStore.sectionKeys.length
+			});
 			status = 'idle';
 		} catch (err) {
 			errorMsg = err instanceof Error ? err.message : 'Something went wrong.';

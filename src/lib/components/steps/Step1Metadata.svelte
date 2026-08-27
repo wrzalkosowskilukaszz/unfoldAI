@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Briefcase, PenTool, Check } from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
+	import { analytics } from '$lib/analytics';
 	import { ROLE_COPY, PROJECT_TYPES, type BriefRole, type ProjectType } from '$lib/types';
 
 	/**
@@ -38,7 +39,10 @@
 				<button
 					type="button"
 					aria-pressed={active}
-					onclick={() => briefStore.updateMeta({ role: key })}
+					onclick={() => {
+						briefStore.updateMeta({ role: key });
+						analytics.roleChosen(key);
+					}}
 					class="flex items-start gap-3 rounded-xl border p-3.5 text-left transition
 						{active
 						? 'border-accent bg-accent-wash/60'
@@ -78,7 +82,10 @@
 				<button
 					type="button"
 					aria-pressed={on}
-					onclick={() => briefStore.updateMeta({ projectType: on ? null : key })}
+					onclick={() => {
+						briefStore.updateMeta({ projectType: on ? null : key });
+						if (!on) analytics.templateChosen(key);
+					}}
 					class="rounded-full border px-3.5 py-2 text-xs font-medium transition
 						{on
 						? 'border-accent bg-accent text-on-accent'

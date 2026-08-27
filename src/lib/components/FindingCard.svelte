@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Check, PencilLine, Lock, RotateCcw, ArrowRight, X } from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
+	import { analytics } from '$lib/analytics';
 	import { FINDING_META, type Finding } from '$lib/types';
 
 	let { finding, index }: { finding: Finding; index: number } = $props();
@@ -23,6 +24,7 @@
 
 	function confirm(answer: string) {
 		briefStore.resolveFinding(finding.id, answer);
+		analytics.findingSettled('resolved', finding.kind);
 		customMode = false;
 		customValue = '';
 	}
@@ -161,7 +163,10 @@
 					-->
 					<button
 						type="button"
-						onclick={() => briefStore.dismissFinding(finding.id)}
+						onclick={() => {
+						briefStore.dismissFinding(finding.id);
+						analytics.findingSettled('dismissed', finding.kind);
+					}}
 						class="mt-2.5 flex items-center gap-1 text-[0.72rem] font-medium text-ink-faint transition hover:text-ink-soft"
 					>
 						<X size={11} />

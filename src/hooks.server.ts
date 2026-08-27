@@ -34,7 +34,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			// Some adapters can't resolve an address; fall through to the shared bucket.
 		}
 
-		const { ok, retryAfterSeconds } = checkRateLimit(key);
+		const { ok, retryAfterSeconds } = await checkRateLimit(key);
 		if (!ok) {
 			return new Response(
 				JSON.stringify({

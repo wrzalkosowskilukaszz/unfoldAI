@@ -18,6 +18,12 @@ puts a public spend button on the internet.
 
 - `ANTHROPIC_API_KEY` — required, server-side only
 - `APP_PASSWORD` — the shared access gate. Unset means the app is wide open.
+- `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` — required in
+  production. Without them the rate limiter counts in each function instance's
+  own memory, so the limit is per-instance rather than per-person and the spend
+  ceiling effectively disappears. Free tier is far more than enough; create it
+  at console.upstash.com or through the Vercel Marketplace. The app logs a loud
+  warning on first request if they are missing in production.
 
 Env vars are injected at deploy time, so **adding one does nothing until you
 redeploy**. Vercel moved the UI: they are under Settings → Environments → click

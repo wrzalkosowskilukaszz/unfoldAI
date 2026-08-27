@@ -25,7 +25,7 @@ export const actions: Actions = {
 		} catch {
 			// fall through to the shared bucket
 		}
-		if (!checkRateLimit(key).ok) {
+		if (!(await checkRateLimit(key)).ok) {
 			return fail(429, { error: 'Too many attempts. Wait a few minutes and try again.' });
 		}
 

@@ -97,32 +97,82 @@ describe('input caps', () => {
 });
 
 describe('rate limiting', () => {
-	beforeEach(() => vi.resetModules());
+	beforeEach(async () => {
+		delete env.UPSTASH_REDIS_REST_URL;
+		delete env.UPSTASH_REDIS_REST_TOKEN;
+		const { __resetRateLimiter } = await import('$lib/server/rateLimit');
+		__resetRateLimiter();
+	});
 
-	it('allows a normal burst then blocks, with a retry hint', async () => {
+	it('allows a burst then blocks, with a retry hint', async () => {
 		const { checkRateLimit } = await import('$lib/server/rateLimit');
-		const key = 'tester-' + Math.random();
-		let lastOk = true;
+		const key = 'burst';
 		let allowed = 0;
-		for (let i = 0; i < 40; i++) {
-			const r = checkRateLimit(key);
+		let blocked: Awaited<ReturnType<typeof checkRateLimit>> | null = null;
+		for (let i = 0; i < 60; i++) {
+			const r = await checkRateLimit(key);
 			if (r.ok) allowed++;
-			else {
-				lastOk = false;
-				expect(r.retryAfterSeconds, 'a blocked caller is told when to come back').toBeGreaterThan(0);
-				break;
-			}
+			else { blocked = r; break; }
 		}
 		expect(allowed).toBeGreaterThan(0);
-		expect(lastOk, 'the limiter must eventually say no').toBe(false);
+		expect(blocked, 'the limiter must eventually say no').toBeTruthy();
+		expect(blocked!.retryAfterSeconds).toBeGreaterThan(0);
 	});
 
 	it('keeps callers separate', async () => {
 		const { checkRateLimit } = await import('$lib/server/rateLimit');
-		const a = 'a-' + Math.random();
-		const b = 'b-' + Math.random();
-		for (let i = 0; i < 40; i++) checkRateLimit(a);
-		expect(checkRateLimit(b).ok, 'one heavy caller must not block everyone else').toBe(true);
+		for (let i = 0; i < 60; i++) await checkRateLimit('heavy');
+		expect((await checkRateLimit('light')).ok, 'one heavy caller must not block everyone').toBe(true);
+	});
+
+	it('reports itself as non-durable with no Redis configured', async () => {
+		const { checkRateLimit } = await import('$lib/server/rateLimit');
+		const r = await checkRateLimit('anyone');
+		expect(r.durable, 'in-process counting is per instance, and says so').toBe(false);
+	});
+
+	it('counts in Redis when it is configured', async () => {
+		env.UPSTASH_REDIS_REST_URL = 'https://fake.upstash.io';
+		env.UPSTASH_REDIS_REST_TOKEN = 'token';
+		const store = new Map<string, number>();
+		vi.doMock('@upstash/redis', () => ({
+			Redis: class {
+				async incr(k: string) { const n = (store.get(k) ?? 0) + 1; store.set(k, n); return n; }
+				async expire() { return 1; }
+				async get(k: string) { return store.get(k) ?? null; }
+			}
+		}));
+		vi.resetModules();
+		const { checkRateLimit } = await import('$lib/server/rateLimit');
+
+		let blockedAt = -1;
+		for (let i = 1; i <= 60; i++) {
+			const r = await checkRateLimit('shared');
+			expect(r.durable, 'must report it is using the shared store').toBe(true);
+			if (!r.ok) { blockedAt = i; break; }
+		}
+		expect(blockedAt, 'blocks near the configured limit, not per instance').toBeGreaterThan(20);
+		expect(blockedAt).toBeLessThan(35);
+		vi.doUnmock('@upstash/redis');
+	});
+
+	it('falls back rather than locking everyone out when Redis breaks', async () => {
+		env.UPSTASH_REDIS_REST_URL = 'https://fake.upstash.io';
+		env.UPSTASH_REDIS_REST_TOKEN = 'token';
+		vi.doMock('@upstash/redis', () => ({
+			Redis: class {
+				async incr(): Promise<number> { throw new Error('network down'); }
+				async expire() { return 1; }
+				async get() { return null; }
+			}
+		}));
+		vi.resetModules();
+		const { checkRateLimit } = await import('$lib/server/rateLimit');
+
+		const r = await checkRateLimit('during-outage');
+		expect(r.ok, 'an outage must not block legitimate users').toBe(true);
+		expect(r.durable, 'but it must admit the ceiling is only per instance').toBe(false);
+		vi.doUnmock('@upstash/redis');
 	});
 });
 

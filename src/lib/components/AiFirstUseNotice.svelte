@@ -27,16 +27,26 @@
 			class="absolute inset-0 bg-ink/40 backdrop-blur-[2px]"
 		></button>
 
+		<!--
+			max-height plus an internal scroll region: at 375x560 — a real phone once
+			browser chrome is accounted for — the card ran 671px tall and its top was
+			cut off above the viewport, hiding the heading entirely. The action bar
+			stays pinned so the primary button is never the thing scrolled away.
+		-->
 		<div
-			class="rise safe-bottom elevated relative w-full max-w-md overflow-hidden rounded-2xl border border-border bg-surface"
+			class="rise safe-bottom elevated relative flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-surface"
 		>
-			<div class="flex flex-col items-center gap-1 bg-sand px-6 pt-6 pb-2 text-center">
-				{#await import('$lib/components/ShieldAnim.svelte') then { default: ShieldAnim }}
-					<ShieldAnim size={128} />
-				{/await}
-			</div>
+			<div class="min-h-0 flex-1 overflow-y-auto">
+				<div class="flex flex-col items-center gap-1 bg-sand px-6 pt-6 pb-2 text-center">
+					{#await import('$lib/components/ShieldAnim.svelte') then { default: ShieldAnim }}
+						<!-- Shrinks on short screens so the words stay above the fold. -->
+						<div class="[&>svg]:h-20 [&>svg]:w-20 sm:[&>svg]:h-32 sm:[&>svg]:w-32">
+							<ShieldAnim size={128} />
+						</div>
+					{/await}
+				</div>
 
-			<div class="flex flex-col gap-3 p-6 sm:p-7">
+				<div class="flex flex-col gap-3 p-6 sm:p-7">
 				<h2 id="ai-notice-title" class="font-display text-lg leading-tight font-semibold text-ink">
 					Before the AI reads this
 				</h2>
@@ -69,10 +79,11 @@
 					You'll only see this once. The full detail is in the
 					<a href="/privacy" class="font-medium text-accent hover:underline">privacy policy</a>.
 				</p>
+				</div>
 			</div>
 
 			<div
-				class="flex flex-col-reverse gap-2.5 border-t border-border bg-surface-alt/40 px-6 py-4 sm:flex-row sm:justify-end sm:px-7"
+				class="flex shrink-0 flex-col-reverse gap-2.5 border-t border-border bg-surface-alt/40 px-6 py-4 sm:flex-row sm:justify-end sm:px-7"
 			>
 				<button
 					type="button"

@@ -12,6 +12,7 @@
 		ScanSearch
 	} from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
+	import SurveySummary from '$lib/components/SurveySummary.svelte';
 	import { aiConsent } from '$lib/stores/aiConsent.svelte';
 	import { compileBriefBody, compileBriefMarkdown } from '$lib/markdown';
 	import { SECTION_LABELS } from '$lib/types';
@@ -326,9 +327,36 @@
 		</header>
 
 		<div class="px-5 py-7 sm:px-8 sm:py-9 lg:px-12">
-			<div class="prose-brief prose max-w-none">
+			<SurveySummary />
+
+			<div class="prose-brief prose mt-8 max-w-none">
 				{@html renderedHtml}
 			</div>
 		</div>
+
+		<!--
+			The colophon. A brief gets forwarded, printed and re-read by people who
+			never opened the tool, so the mark travels with the document — but as a
+			quiet record of how it was made, not a watermark.
+		-->
+		<footer
+			class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border px-5 py-5 sm:px-8 lg:px-12"
+		>
+			<div class="flex items-center gap-2">
+				<svg width="17" height="17" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+					<circle cx="130" cy="130" r="130" fill="var(--c-accent-wash)" />
+					<path
+						fill="var(--c-accent)"
+						d="M239.6,144.8c-2.7,20-13.7,39.7-29.3,55.4-15.6,15.7-35.7,27.3-56.8,31.3L.6,260l81.3-71.6,110-20.5,20.3-17.9-110,20.5h0s-15.6,2.9-15.6,2.9c-42.1,7.9-71.7-18.2-66.3-58.2s13.7-39.7,29.3-55.4c15.6-15.7,35.7-27.3,56.8-31.3L259.4,0l-81.3,71.6-109.9,20.5-20.3,17.9,125.5-23.4c42.1-7.9,71.7,18.2,66.3,58.2Z"
+					/>
+				</svg>
+				<p class="text-xs text-ink-faint">
+					Surveyed with <span class="font-semibold text-ink-soft">Surveyvor</span>
+				</p>
+			</div>
+			<p class="text-[0.7rem] text-ink-faint">
+				This brief records what was settled — and what was not.
+			</p>
+		</footer>
 	</article>
 </div>

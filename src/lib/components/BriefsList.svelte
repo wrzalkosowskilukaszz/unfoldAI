@@ -129,7 +129,8 @@
 				briefStore.importBriefFromJSON(reader.result as string);
 				importError = null;
 			} catch {
-				importError = "That file couldn't be read as a brief. Make sure it's an exported .json file.";
+				importError =
+					"That is not a Surveyvor backup. Restore expects the .json file you get from “Back up to file” — to bring in a Word document or notes, start a new brief instead.";
 			}
 		};
 		reader.readAsText(file);
@@ -154,7 +155,7 @@
 				class="flex min-h-11 items-center gap-1.5 rounded-full border border-border bg-surface px-4 text-xs font-semibold text-ink shadow-sm transition hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md lg:min-h-0 lg:py-1.5"
 			>
 				<Upload size={15} class="text-accent" />
-				Import
+				Restore from file
 			</button>
 			<input
 				bind:this={fileInput}
@@ -264,7 +265,7 @@
 						</button>
 						<button
 							type="button"
-							aria-label="Export as JSON"
+							aria-label="Back up to file"
 							onclick={(e) => handleExport(brief.id, e)}
 							class="flex h-9 w-9 items-center justify-center rounded-full text-ink-faint hover:bg-surface-alt hover:text-accent"
 						>
@@ -395,7 +396,7 @@
 				class="flex min-h-13 w-full items-center gap-3 rounded-xl px-3 text-sm font-medium text-ink active:bg-surface-hover"
 			>
 				<Download size={17} class="text-ink-faint" />
-				Export as file
+				Back up to file
 			</button>
 
 			<div class="my-2 h-px bg-border"></div>

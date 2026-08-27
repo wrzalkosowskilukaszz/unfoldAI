@@ -37,11 +37,14 @@
 	 * browser's back and forward buttons work without any handling of our own,
 	 * and what lets a refresh land where you were.
 	 */
+	/**
+	 * Applies whatever the URL says. This exists for navigation the app did not
+	 * initiate — back, forward, and a fresh load on a deep link. Explicit actions
+	 * below set the view themselves rather than relying on this, because
+	 * pushState updates the URL without re-running the effect; only popstate and
+	 * a real load do.
+	 */
 	$effect(() => {
-		// The URL is the ONLY dependency. Everything else is untracked because this
-		// effect writes to the store, and reading what it writes made it retrigger
-		// itself — which left the view snapping back to the gallery while the URL
-		// still pointed at a brief.
 		const url = page.url;
 		untrack(() => {
 			const pos = readPosition(url);
@@ -56,6 +59,7 @@
 
 	function openBrief(id: string) {
 		briefStore.openBrief(id);
+		view = 'wizard';
 		go({ view: 'wizard', briefId: id, step: briefStore.step });
 	}
 
@@ -67,10 +71,12 @@
 	}
 
 	function toGallery() {
+		view = 'gallery';
 		go({ view: 'gallery', briefId: null, step: null });
 	}
 
 	function toImport() {
+		view = 'import';
 		go({ view: 'import', briefId: null, step: null });
 	}
 </script>

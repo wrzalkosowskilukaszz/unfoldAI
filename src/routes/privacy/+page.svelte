@@ -1,14 +1,12 @@
 <script lang="ts">
+	import Seo from '$lib/components/Seo.svelte';
 	import LegalPage from '$lib/components/LegalPage.svelte';
 </script>
 
-<svelte:head>
-	<title>Privacy — Surveyvor</title>
-	<meta
-		name="description"
-		content="What Surveyvor does and does not collect. Your briefs stay in your browser."
-	/>
-</svelte:head>
+<Seo
+	title="Privacy — Surveyvor"
+	description="What Surveyvor does and does not collect. Your briefs stay in your browser; nothing is uploaded and nothing trains a model."
+/>
 
 <LegalPage title="Privacy Policy" updated="27 August 2026">
 	<div class="summary">

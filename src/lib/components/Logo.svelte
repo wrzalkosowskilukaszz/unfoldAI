@@ -1,7 +1,12 @@
 <script lang="ts">
-	// The signet is a full-bleed disc, not a padded tile, so it reads larger
-	// than its pixel size suggests next to the wordmark's cap height.
-	let { size = 25, showWordmark = true }: { size?: number; showWordmark?: boolean } = $props();
+	/*
+	 * Measured against peers: Vercel 18-21px, Linear 22px, Stripe 25px lockups.
+	 * We sit deliberately above that range because those are horizontal
+	 * wordmark-dominant lockups, while ours is a disc — a circle carries less
+	 * optical mass than its bounding box, so matching their pixel height reads
+	 * noticeably smaller on the page.
+	 */
+	let { size = 30, showWordmark = true }: { size?: number; showWordmark?: boolean } = $props();
 </script>
 
 <div class="flex items-center gap-2.5">

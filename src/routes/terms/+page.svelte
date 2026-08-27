@@ -1,11 +1,12 @@
 <script lang="ts">
+	import Seo from '$lib/components/Seo.svelte';
 	import LegalPage from '$lib/components/LegalPage.svelte';
 </script>
 
-<svelte:head>
-	<title>Terms — Surveyvor</title>
-	<meta name="description" content="Terms of use for the Surveyvor beta." />
-</svelte:head>
+<Seo
+	title="Terms — Surveyvor"
+	description="Terms of use for the free Surveyvor beta, operated by Take a Luke Studio."
+/>
 
 <LegalPage title="Terms of Service" updated="27 August 2026">
 	<div class="summary">

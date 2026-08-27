@@ -5,8 +5,8 @@
 | | |
 |---|---|
 | Repo | `wrzalkosowskilukaszz/unfoldAI` (name predates the rename) |
-| Vercel project | `luke-s-projectss/unfoldai` |
-| Live URL | https://unfoldai-seven.vercel.app |
+| Vercel project | `luke-s-projectss/surveyvor` |
+| Live URL | https://surveyvor.app |
 | Deploys | Automatically, on every push to `main` |
 
 A duplicate Vercel project (`unfold-ai-five`) existed and has been deleted.

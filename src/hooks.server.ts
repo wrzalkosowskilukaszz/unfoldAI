@@ -9,7 +9,7 @@ const UNLOCK_PATH = '/unlock';
  * privacy policy nobody can read is not a privacy policy — and the unlock page
  * is what a visitor from LinkedIn or a portfolio link lands on.
  */
-const PUBLIC_PATHS = new Set([UNLOCK_PATH, '/privacy', '/terms']);
+const PUBLIC_PATHS = new Set([UNLOCK_PATH, '/privacy', '/terms', '/sitemap.xml']);
 
 /**
  * Guards every request in one place, so a new route can't accidentally ship

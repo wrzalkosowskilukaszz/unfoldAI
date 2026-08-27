@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Seo from '$lib/components/Seo.svelte';
 	import { enhance } from '$app/forms';
 	import { Lock, ArrowRight } from '@lucide/svelte';
 	import Logo from '$lib/components/Logo.svelte';
@@ -15,9 +16,10 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Surveyvor</title>
-</svelte:head>
+<Seo
+	title="Surveyvor — Survey the project before you build it"
+	description="An AI briefing tool for creative teams. Surveyvor uncovers the assumptions, contradictions and unresolved decisions hiding in a brief — before they become expensive problems."
+/>
 
 <div class="flex min-h-screen flex-col items-center justify-center px-6">
 	<div class="w-full max-w-sm">

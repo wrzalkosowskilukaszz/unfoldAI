@@ -1,3 +1,7 @@
-# allow crawling everything by default
+# The app itself sits behind the beta password and carries noindex; only the
+# public landing and legal pages are worth crawling.
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /api/
+
+Sitemap: https://surveyvor.app/sitemap.xml

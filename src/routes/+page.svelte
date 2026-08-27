@@ -13,6 +13,7 @@
 	import Step6Diagnose from '$lib/components/steps/Step6Diagnose.svelte';
 	import Step7Export from '$lib/components/steps/Step7Export.svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
+	import Seo from '$lib/components/Seo.svelte';
 
 	/**
 	 * The wizard's shape comes from the brief's template: Basics, one step per
@@ -31,9 +32,11 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Surveyvor</title>
-</svelte:head>
+<Seo
+	title="Surveyvor"
+	description="Turn messy project input into a brief you can trust. Surveyvor uncovers assumptions, contradictions and unresolved decisions before they become expensive problems."
+	index={false}
+/>
 
 {#if view === 'gallery' || view === 'import'}
 	<!-- Gallery: full-bleed editorial opening, no chrome competing with the headline. -->
@@ -152,7 +155,7 @@
 			<!-- Desktop: the full rail. -->
 			<div class="hidden h-full flex-col px-6 py-7 lg:flex">
 				<div class="flex items-center justify-between">
-					<Logo size={27} />
+					<Logo size={28} />
 					<button
 						type="button"
 						onclick={() => themeStore.toggle()}

@@ -272,3 +272,47 @@ describe('errors are traceable', () => {
 		vi.restoreAllMocks();
 	});
 })
+
+describe('the gate can be re-engaged and is hard to guess at', () => {
+	beforeEach(async () => {
+		delete env.UPSTASH_REDIS_REST_URL;
+		delete env.UPSTASH_REDIS_REST_TOKEN;
+		vi.resetModules();
+		const { __resetRateLimiter } = await import('$lib/server/rateLimit');
+		__resetRateLimiter();
+	});
+
+	it('gives password attempts a far tighter allowance than AI calls', async () => {
+		const { checkRateLimit, AUTH_ATTEMPT_LIMIT } = await import('$lib/server/rateLimit');
+		expect(AUTH_ATTEMPT_LIMIT).toBeLessThan(15);
+
+		let allowed = 0;
+		for (let i = 0; i < 40; i++) {
+			const r = await checkRateLimit('unlock:1.2.3.4', AUTH_ATTEMPT_LIMIT);
+			if (!r.ok) break;
+			allowed++;
+		}
+		expect(allowed, 'guessing must be cut off quickly').toBeLessThanOrEqual(AUTH_ATTEMPT_LIMIT);
+		// The generous AI allowance must be unaffected by the strict auth one.
+		expect((await checkRateLimit('ai:1.2.3.4')).ok).toBe(true);
+	});
+
+	it('exposes a lock action that clears the session cookie', async () => {
+		const src = await import('node:fs').then((fs) =>
+			fs.readFileSync('src/routes/unlock/+page.server.ts', 'utf8')
+		);
+		expect(src, 'a shared machine must be re-lockable').toContain('lock:');
+		expect(src).toContain('cookies.delete(AUTH_COOKIE');
+		expect(src).toContain("redirect(303, '/unlock')");
+	});
+
+	it('never writes password material when an attempt fails', async () => {
+		const src = await import('node:fs').then((fs) =>
+			fs.readFileSync('src/routes/unlock/+page.server.ts', 'utf8')
+		);
+		const logLine = src.split('\n').find((l) => l.includes('failed_attempt')) ?? '';
+		expect(logLine, 'failed attempts are logged so a burst is visible').toBeTruthy();
+		expect(logLine, 'but never the password itself').not.toContain('password');
+		expect(logLine, 'nor its length, which would narrow a guess').not.toMatch(/\.length/);
+	});
+});

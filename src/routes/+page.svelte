@@ -6,6 +6,7 @@
 	import { themeStore } from '$lib/stores/theme.svelte';
 	import BriefsList from '$lib/components/BriefsList.svelte';
 	import AiFirstUseNotice from '$lib/components/AiFirstUseNotice.svelte';
+	import LockButton from '$lib/components/LockButton.svelte';
 	import SaveIndicator from '$lib/components/SaveIndicator.svelte';
 	import ImportDocument from '$lib/components/ImportDocument.svelte';
 	import Step1Metadata from '$lib/components/steps/Step1Metadata.svelte';
@@ -23,6 +24,8 @@
 	let totalSteps = $derived(briefStore.totalSteps);
 	let stepLabels = $derived(briefStore.stepLabels);
 	let sectionKey = $derived(briefStore.sectionAtStep(briefStore.step));
+
+	let { data }: { data: { gated: boolean } } = $props();
 
 	let view = $state<'gallery' | 'wizard' | 'import'>('gallery');
 
@@ -53,6 +56,10 @@
 		<main class="relative mx-auto max-w-5xl px-6 py-12 sm:px-10 sm:py-16">
 			<div class="flex items-center justify-between">
 				<Logo />
+				<div class="flex items-center gap-1.5">
+					{#if data.gated}
+						<LockButton />
+					{/if}
 				<button
 					type="button"
 					onclick={() => themeStore.toggle()}
@@ -65,6 +72,7 @@
 						<Sun size={15} />
 					{/if}
 				</button>
+				</div>
 			</div>
 
 			<header class="mt-12 grid items-center gap-10 md:mt-16 md:grid-cols-[1fr_auto] md:gap-14">

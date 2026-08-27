@@ -38,7 +38,7 @@ interface Bucket {
 }
 const buckets = new Map<string, Bucket>();
 
-function checkInMemory(key: string, now: number): RateLimitResult {
+function checkInMemory(key: string, now: number, limit = LIMIT): RateLimitResult {
 	const cutoff = now - WINDOW_MS;
 
 	if (buckets.size > MAX_BUCKETS) {
@@ -52,7 +52,7 @@ function checkInMemory(key: string, now: number): RateLimitResult {
 	const bucket = buckets.get(key) ?? { hits: [] };
 	bucket.hits = bucket.hits.filter((t) => t >= cutoff);
 
-	if (bucket.hits.length >= LIMIT) {
+	if (bucket.hits.length >= limit) {
 		buckets.set(key, bucket);
 		const oldest = bucket.hits[0];
 		return {
@@ -103,7 +103,12 @@ async function getRedis(): Promise<RedisLike | null> {
  * the previous window by its remaining overlap removes that without needing a
  * sorted set and the extra round trips it costs.
  */
-async function checkRedis(client: RedisLike, key: string, now: number): Promise<RateLimitResult> {
+async function checkRedis(
+	client: RedisLike,
+	key: string,
+	now: number,
+	limit = LIMIT
+): Promise<RateLimitResult> {
 	const windowId = Math.floor(now / WINDOW_MS);
 	const elapsed = now - windowId * WINDOW_MS;
 	const currentKey = `rl:${key}:${windowId}`;
@@ -122,7 +127,7 @@ async function checkRedis(client: RedisLike, key: string, now: number): Promise<
 	const previous = Number(previousRaw ?? 0) || 0;
 	const weighted = previous * (1 - elapsed / WINDOW_MS) + current;
 
-	if (weighted > LIMIT) {
+	if (weighted > limit) {
 		return {
 			ok: false,
 			retryAfterSeconds: Math.max(1, Math.ceil((WINDOW_MS - elapsed) / 1000)),
@@ -132,7 +137,12 @@ async function checkRedis(client: RedisLike, key: string, now: number): Promise<
 	return { ok: true, retryAfterSeconds: 0, durable: true };
 }
 
-export async function checkRateLimit(key: string): Promise<RateLimitResult> {
+/**
+ * @param limit Overrides the default allowance. Password attempts get a much
+ *   tighter one than AI calls: 25 tries per ten minutes is generous for a
+ *   human who mistyped and far too generous for someone guessing.
+ */
+export async function checkRateLimit(key: string, limit = LIMIT): Promise<RateLimitResult> {
 	const now = Date.now();
 	const client = await getRedis();
 
@@ -144,16 +154,16 @@ export async function checkRateLimit(key: string): Promise<RateLimitResult> {
 					'not per user. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.'
 			);
 		}
-		return checkInMemory(key, now);
+		return checkInMemory(key, now, limit);
 	}
 
 	try {
-		return await checkRedis(client, key, now);
+		return await checkRedis(client, key, now, limit);
 	} catch (err) {
 		// A Redis blip must not lock every user out, but it must not remove the
 		// ceiling either — drop to the in-process limiter and say so.
 		console.error('[rateLimit] Redis unavailable; using in-process fallback', err);
-		return checkInMemory(key, now);
+		return checkInMemory(key, now, limit);
 	}
 }
 
@@ -174,3 +184,6 @@ export const MAX_INPUT_CHARS = 20_000;
 export function tooLong(...values: (string | undefined)[]): boolean {
 	return values.reduce((n, v) => n + (v?.length ?? 0), 0) > MAX_INPUT_CHARS;
 }
+
+/** Password attempts. Deliberately far tighter than the AI allowance. */
+export const AUTH_ATTEMPT_LIMIT = 8;

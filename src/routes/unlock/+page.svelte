@@ -33,7 +33,7 @@
 		</p>
 
 		<form
-			method="POST"
+			method="POST" action="?/unlock"
 			use:enhance={() => {
 				submitting = true;
 				return async ({ update }) => {

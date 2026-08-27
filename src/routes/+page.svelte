@@ -152,7 +152,7 @@
 			<!-- Desktop: the full rail. -->
 			<div class="hidden h-full flex-col px-6 py-7 lg:flex">
 				<div class="flex items-center justify-between">
-					<Logo size={30} />
+					<Logo size={27} />
 					<button
 						type="button"
 						onclick={() => themeStore.toggle()}

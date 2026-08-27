@@ -1,5 +1,7 @@
 <script lang="ts">
-	let { size = 27, showWordmark = true }: { size?: number; showWordmark?: boolean } = $props();
+	// The signet is a full-bleed disc, not a padded tile, so it reads larger
+	// than its pixel size suggests next to the wordmark's cap height.
+	let { size = 25, showWordmark = true }: { size?: number; showWordmark?: boolean } = $props();
 </script>
 
 <div class="flex items-center gap-2.5">
@@ -22,6 +24,6 @@
 	</svg>
 
 	{#if showWordmark}
-		<span class="font-display text-lg font-semibold tracking-[-0.02em] text-ink"> Surveyvor </span>
+		<span class="font-display text-xl font-semibold tracking-[-0.02em] text-ink"> Surveyvor </span>
 	{/if}
 </div>

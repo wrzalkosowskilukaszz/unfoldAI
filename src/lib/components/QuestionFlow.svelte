@@ -12,7 +12,6 @@
 	import { briefStore } from '$lib/stores/brief.svelte';
 	import {
 		MAX_HELP_QUESTIONS,
-		SECTION_ORDER,
 		type HelpAnswer,
 		type HelpQuestion,
 		type SectionKey
@@ -72,8 +71,8 @@
 		errorMsg = null;
 		try {
 			const otherSections: Record<string, string> = {};
-			for (const key of SECTION_ORDER) {
-				if (key !== sectionKey) otherSections[key] = briefStore.sections[key].raw;
+			for (const key of briefStore.sectionKeys) {
+				if (key !== sectionKey) otherSections[key] = briefStore.sections[key]?.raw ?? '';
 			}
 
 			const res = await fetch('/api/next-question', {
@@ -81,7 +80,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					sectionName: sectionKey,
-					sectionRaw: briefStore.sections[sectionKey].raw,
+					sectionRaw: briefStore.sections[sectionKey]?.raw ?? '',
 					otherSections,
 					answered: answers,
 					learnedContext: briefStore.helpHistory,

@@ -391,12 +391,14 @@ class BriefStore {
 	}
 
 	setStatus(key: SectionKey, status: SectionStatus, error: string | null = null) {
+		if (!this.active.sections[key]) this.active.sections[key] = emptySection();
 		this.active.sections[key].status = status;
 		this.active.sections[key].error = error;
 		this.persist();
 	}
 
 	setRefined(key: SectionKey, refined: string) {
+		if (!this.active.sections[key]) this.active.sections[key] = emptySection();
 		this.active.sections[key].refined = refined;
 		this.active.sections[key].status = 'idle';
 		this.active.sections[key].error = null;

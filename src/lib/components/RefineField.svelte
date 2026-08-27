@@ -30,7 +30,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					sectionName: sectionKey,
-					rawInput: briefStore.sections[sectionKey].raw,
+					rawInput: briefStore.sections[sectionKey]?.raw ?? '',
 					role: briefStore.meta.role,
 					projectType: briefStore.meta.projectType,
 					regenerate

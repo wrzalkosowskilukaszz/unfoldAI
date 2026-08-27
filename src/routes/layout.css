@@ -24,6 +24,19 @@
 	--c-accent-wash: #e0dcf9;
 	--c-on-accent: #ffffff;
 
+	/*
+	 * Warm counterpart to the violet. Deliberately at hue 345 rather than a
+	 * conventional amber or terracotta: the semantic colours already own the warm
+	 * arc (attention ~40 degrees, contradiction ~5), and every ochre or coral
+	 * tested landed within 13 degrees of one of them, which would read as an
+	 * alert. This sits 54 degrees off attention and reads as brand, not signal.
+	 */
+	--c-warm: #a8455e;
+	--c-warm-wash: #fdeef2;
+	--c-on-warm: #ffffff;
+	/* Warm neutral ground — survey-map paper, for large areas rather than signals. */
+	--c-sand: #f4ede4;
+
 	--c-clear: #2f7d5b;
 	--c-clear-wash: #eaf5ef;
 	--c-attention: #a8730f;
@@ -56,6 +69,12 @@
 	--c-accent: #8f83ff;
 	--c-accent-soft: #a79dff;
 	--c-accent-wash: #221f45;
+
+	--c-warm: #f0879f;
+	--c-warm-wash: #2b1620;
+	/* Same trap as the accent: white on this pink is under 4.5:1. */
+	--c-on-warm: #2b0f18;
+	--c-sand: #1a1713;
 	/* Dark text on the light violet fill: white on it only reaches 3.06:1. */
 	--c-on-accent: #14121f;
 
@@ -93,6 +112,11 @@
 	--color-accent-soft: var(--c-accent-soft);
 	--color-accent-wash: var(--c-accent-wash);
 	--color-on-accent: var(--c-on-accent);
+
+	--color-warm: var(--c-warm);
+	--color-warm-wash: var(--c-warm-wash);
+	--color-on-warm: var(--c-on-warm);
+	--color-sand: var(--c-sand);
 
 	--color-clear: var(--c-clear);
 	--color-clear-wash: var(--c-clear-wash);
@@ -210,9 +234,9 @@ summary:focus-visible,
 }
 
 :root[data-theme='dark'] .anim-plate {
-	background: radial-gradient(120% 120% at 50% 35%, #efedfb 0%, #ded9f6 70%, #d2ccf2 100%);
+	background: radial-gradient(120% 120% at 50% 35%, #fbf6ef 0%, #f2e7da 70%, #ead9c6 100%);
 	box-shadow:
-		0 0 0 1px rgba(122, 108, 255, 0.22),
+		0 0 0 1px rgba(168, 69, 94, 0.18),
 		0 30px 70px -40px rgba(0, 0, 0, 0.85);
 	padding: 1.25rem;
 }

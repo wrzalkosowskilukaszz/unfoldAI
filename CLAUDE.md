@@ -115,6 +115,20 @@ in `src/routes/layout.css`, defined once on `:root` and swapped wholesale under
 `[data-theme='dark']`. `@theme` maps them to Tailwind tokens, so components stay
 theme-agnostic.
 
+### Two brand colours, and why the warm one is pink
+
+The palette is **violet (primary) + warm rose (secondary) + sand (warm ground)**.
+
+The warm colour sits at hue 345 rather than a conventional amber or terracotta
+for a measurable reason: the semantic colours already own the warm arc
+(`attention` ~40 degrees, `contradiction` ~5). Every ochre, clay, copper and
+coral tested landed within 13 degrees of one of them and would have read as an
+alert. Rose is 54 degrees off attention. Verified 16/16 WCAG checks across both
+themes before it shipped.
+
+Use `--c-warm` for brand moments, never for status. `--c-sand` is ground for
+large areas (the dark-mode illustration plate), not a signal.
+
 ### The `--c-on-*` pattern — read this before adding any filled button
 
 A saturated fill that looks fine in light mode often **fails contrast in dark
@@ -125,6 +139,7 @@ This has bitten the app twice:
 |---|---|---|
 | `--c-accent` (dark) `#8f83ff` | 3.06:1 ✗ | `--c-on-accent: #14121f` → passes |
 | `--c-contradiction` (dark) `#ff6b5a` | 2.80:1 ✗ | `--c-on-contradiction: #1c0f0d` → 6.60:1 |
+| `--c-warm` (dark) `#f0879f` | under 4.5:1 ✗ | `--c-on-warm: #2b0f18` → 7.32:1 |
 
 So: **every solid fill gets a paired `--c-on-*` token.** Use `text-on-accent`,
 never `text-white`. Measure both themes before committing — don't eyeball it.

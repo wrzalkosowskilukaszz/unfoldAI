@@ -278,7 +278,7 @@
 				<div class="h-1.5 w-full overflow-hidden rounded-full bg-surface-alt">
 					<div
 						class="h-full rounded-full"
-						style="width: {(brief.step / totalStepsFor(brief.meta.projectType)) * 100}%; background: linear-gradient(90deg, var(--color-accent), var(--color-accent-soft))"
+						style="width: {(brief.step / totalStepsFor(brief.meta.projectType)) * 100}%; background: linear-gradient(90deg, var(--color-accent), var(--color-warm))"
 					></div>
 				</div>
 				<span class="text-[0.72rem] font-medium text-ink-faint">{stepLabel(brief)}</span>

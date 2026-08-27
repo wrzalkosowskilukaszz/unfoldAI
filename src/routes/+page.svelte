@@ -39,7 +39,9 @@
 	<div class="relative min-h-screen">
 		<div
 			class="pointer-events-none absolute inset-x-0 top-0 h-[380px]"
-			style="background: radial-gradient(120% 70% at 78% 0%, var(--c-accent-wash), transparent 70%)"
+			style="background:
+				radial-gradient(90% 60% at 82% 0%, var(--c-accent-wash), transparent 70%),
+				radial-gradient(70% 55% at 18% 0%, var(--c-warm-wash), transparent 72%)"
 		></div>
 
 		<!-- <main> so screen-reader users can jump straight to content; the gallery

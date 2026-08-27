@@ -1,32 +1,27 @@
 <script lang="ts">
-	let { size = 34, showWordmark = true }: { size?: number; showWordmark?: boolean } = $props();
+	let { size = 27, showWordmark = true }: { size?: number; showWordmark?: boolean } = $props();
 </script>
 
 <div class="flex items-center gap-2.5">
 	<!--
-		Supplied brand signet, used as authored. The tile keeps its own violet
-		rather than the UI accent token: the accent was darkened to #5f4fe8 to
-		pass contrast as a button fill, which is a text-legibility constraint the
-		mark does not share.
+		Supplied brand signet, used as authored. Both colours are fixed rather than
+		tokenised: a logo should not shift with the UI theme, and the pale disc is
+		part of the mark, not a surface.
 	-->
 	<svg
 		width={size}
 		height={size}
-		viewBox="0 0 1215.6 1215.6"
+		viewBox="0 0 260 260"
 		xmlns="http://www.w3.org/2000/svg"
 		role="img"
 		aria-label="Surveyvor"
 		class="shrink-0"
 	>
-		<path fill="#7a6cff" d="M492.8,224c.8,0,1.5,0,2.2-.1-.7,0-1.4,0-2.2.1ZM492.8,224c.8,0,1.5,0,2.2-.1-.7,0-1.4,0-2.2.1ZM996.4,0H219.2C98.1,0,0,98.1,0,219.2v777.2c0,121.1,98.1,219.2,219.2,219.2h777.2c121.1,0,219.2-98.1,219.2-219.2V219.2C1215.6,98.1,1117.4,0,996.4,0ZM582.9,993.2H248.9c-.4,0-.8-.3-.8-.8v-387.4c0-.7.9-1,1.3-.5l334,387.4c.4.5,0,1.3-.6,1.3ZM908.6,945.6c-39.2,31.3-103.3,47-192.2,47-.2,0-.4,0-.6-.3L250.1,450.3c-.2-.2-.4-.3-.6-.3h-2.3c-.4,0-.8-.4-.8-.8.1-77.4,21.3-134.5,63.4-171.4,39.9-35,100.3-53.4,181-55.3.4,0,.8.3.8.8s.3.8.7.8c.1,0,.3,0,.4,0,.8,0,1.5,0,2.2-.1.3,0,.7,0,1,0,.3,0,.6,0,.9,0,1.2,0,2.2-.2,3-.3.1,0,.3,0,.4,0,.4,0,.7-.1.9-.2.1,0,.3,0,.4-.1.4-.1.7-.3.8-.4,0,0,.2,0,.2,0l-.3-.3c.8,0,1.7,0,2.5,0s.4,0,.6.3l463.5,562.5c.1.1.2.3.2.5,0,74.6-20.2,128-60.6,160ZM969.2,608.3c0,.7-.9,1-1.3.5l-347-385.2c-.4-.5-.1-1.3.6-1.3h347c.4,0,.8.3.8.8v385.2ZM492.8,224c.8,0,1.5,0,2.2-.1-.7,0-1.4,0-2.2.1Z" />
-		<path fill="#fff" d="M969.2,223.1v385.2c0,.7-.9,1-1.3.5l-347-385.2c-.4-.5-.1-1.3.6-1.3h347c.4,0,.8.3.8.8Z" />
-		<path fill="#fff" d="M969.2,785.6c0,74.6-20.2,128-60.6,160-39.2,31.3-103.3,47-192.2,47-.2,0-.4,0-.6-.3L250.1,450.3c-.2-.2-.4-.3-.6-.3h-2.3c-.4,0-.8-.4-.8-.8.1-77.4,21.3-134.5,63.4-171.4,39.9-35,100.3-53.4,181-55.3.4,0,.8.3.8.8v.8c.2,0,.5,0,.7,0,.1,0,.3,0,.4,0,.8,0,1.5,0,2.2-.1.3,0,.7,0,1,0,.3,0,.6,0,.9,0,1.2,0,2.2-.2,3-.3.1,0,.3,0,.4,0,.4,0,.7-.1.9-.2.1,0,.3,0,.4-.1.4-.1.7-.3.8-.4,0,0,.2,0,.2,0l-.3-.3c.8,0,1.7,0,2.5,0s.4,0,.6.3l463.5,562.5c.1.1.2.3.2.5Z" />
-		<path fill="#fff" d="M582.9,993.2H248.9c-.4,0-.8-.3-.8-.8v-387.4c0-.7.9-1,1.3-.5l334,387.4c.4.5,0,1.3-.6,1.3Z" />
+		<rect x="0" y="0.8" width="260" height="258.4" rx="129.2" ry="129.2" fill="#efeeff" />
+		<path fill="#7d6bff" d="M239.6,144.8c-2.7,20-13.7,39.7-29.3,55.4-15.6,15.7-35.7,27.3-56.8,31.3L.6,260l81.3-71.6,110-20.5,20.3-17.9-110,20.5h0s-15.6,2.9-15.6,2.9c-42.1,7.9-71.7-18.2-66.3-58.2s13.7-39.7,29.3-55.4c15.6-15.7,35.7-27.3,56.8-31.3L259.4,0l-81.3,71.6-109.9,20.5-20.3,17.9,125.5-23.4c42.1-7.9,71.7,18.2,66.3,58.2Z" />
 	</svg>
 
 	{#if showWordmark}
-		<span class="font-display text-lg font-semibold tracking-[-0.02em] text-ink">
-			Surveyvor
-		</span>
+		<span class="font-display text-lg font-semibold tracking-[-0.02em] text-ink"> Surveyvor </span>
 	{/if}
 </div>

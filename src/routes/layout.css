@@ -21,7 +21,7 @@
 
 	--c-accent: #5f4fe8;
 	--c-accent-soft: #a79dff;
-	--c-accent-wash: #e0dcf9;
+	--c-accent-wash: #e8e5fb;
 	--c-on-accent: #ffffff;
 
 	/*
@@ -38,13 +38,13 @@
 	--c-sand: #f4ede4;
 
 	--c-clear: #2f7d5b;
-	--c-clear-wash: #eaf5ef;
-	--c-attention: #a8730f;
+	--c-clear-wash: #ebf6f0;
+	--c-attention: #96660d;
 	--c-attention-wash: #fbf3e2;
 	--c-contradiction: #c0392b;
 	--c-contradiction-wash: #fceeec;
 	--c-on-contradiction: #ffffff;
-	--c-unknown: #64748b;
+	--c-unknown: #606f85;
 	--c-unknown-wash: #f1f3f6;
 
 	--c-grain: 0.03;

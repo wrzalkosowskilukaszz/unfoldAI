@@ -48,7 +48,8 @@ Never revert to generic SaaS words — "AI insights", "recommendations",
 "optimisation". The positioning is explicitly anti-that: *Claude can write your
 brief; Surveyvor interrogates it.*
 
-Restore point for the pre-rename app: `git checkout finished-unfold`.
+Live at **https://surveyvor.app** (Vercel project `surveyvor`, auto-deploys from
+`main`). Restore point for the pre-rename app: `git checkout finished-unfold`.
 
 ---
 
@@ -165,6 +166,58 @@ never `text-white`. Measure both themes before committing — don't eyeball it.
 Light mode is the primary expression — the owner is not a dark-mode person, and
 dark exists for completeness, not as the showcase. Minimal but high-tech;
 generous whitespace; motion should feel physical, never linear easing.
+
+---
+
+## Testing
+
+`npm test` — Vitest, jsdom, ~41 tests. Run it before pushing; it has already
+caught a real auth bug and two silent template-blindness bugs.
+
+Two environment traps are handled in `tests/setup.ts` and `vitest.config.ts`,
+and will bite again if you touch them:
+
+- **Node 26 ships its own experimental `localStorage`** that shadows jsdom's and
+  is inert without `--localstorage-file`; this jsdom does not install one either.
+  The suite owns a `MemoryStorage`, which is also what makes quota failure
+  injectable.
+- **`$env/dynamic/private` cannot be resolved by Vite**, so it is aliased to a
+  stub whose state lives on `globalThis` — `vi.resetModules()` would otherwise
+  discard whatever a test had set.
+
+Test the store, the guards and anything that can fail silently. Do not chase a
+coverage number.
+
+---
+
+## Things that need provisioning, not code
+
+- **`UPSTASH_REDIS_REST_URL` / `_TOKEN`** — without them the rate limiter counts
+  in each serverless instance's own memory, so the limit is per-instance rather
+  than per-person. The code falls back and logs a loud warning; it is not a
+  substitute. See `context/deployment.md`.
+- **`SENTRY_DSN`** — optional. Errors already get a reference id and structured
+  logs without it.
+
+---
+
+## Two flows that are easy to break
+
+**The AI disclosure.** Every call site that sends brief text to the model awaits
+`aiConsent.ensure()` (`src/lib/stores/aiConsent.svelte.ts`). It shows once, at
+the moment text first leaves the device — deliberately not an arrival popup.
+Zero requests may fire before acknowledgement; declining cancels the action and
+does **not** record consent. If you add an AI call site, add the guard.
+
+**Public routes.** `PUBLIC_PATHS` in `hooks.server.ts` is the allowlist that
+escapes the beta password: `/unlock`, `/privacy`, `/terms`, `/sitemap.xml`. A
+privacy policy behind a login is useless to a visitor, a regulator and App Store
+review. Everything else stays gated.
+
+**Page metadata.** Use `Seo.svelte` — it supplies title, description, canonical,
+Open Graph and Twitter tags together. The gated app passes `index={false}`; the
+public pages do not. Note `src/routes/+page.ts` sets `ssr = false`, so the app
+route emits no server-side head tags; the public pages do render theirs.
 
 ---
 

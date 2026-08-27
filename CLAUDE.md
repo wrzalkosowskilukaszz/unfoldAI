@@ -4,6 +4,16 @@ Context for anyone (human or Claude) picking this up. Only things that are **not
 obvious from reading the code** — no file inventories, no architecture diagrams
 that `src/` already tells you.
 
+**Deeper context lives in `context/`** — read the relevant file before
+re-deriving any of it:
+
+| File | Read it before |
+|---|---|
+| `context/deployment.md` | deploying, touching env vars, or debugging the live site |
+| `context/naming.md` | proposing a name change — two are already dead, and why matters |
+| `context/brand-voice.md` | writing any user-facing copy; holds unused lines worth using |
+| `context/competitive-landscape.md` | positioning or feature decisions vs Brieflow / Content Snare |
+
 ---
 
 ## Language

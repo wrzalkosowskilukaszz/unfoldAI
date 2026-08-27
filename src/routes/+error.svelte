@@ -24,6 +24,13 @@
 		Your briefs are saved in this browser and are not affected.
 	</p>
 
+	{#if page.error && 'id' in page.error && page.error.id}
+		<!-- Quoting this turns an unactionable "it broke" into one log line. -->
+		<p class="mt-3 font-mono text-[0.7rem] tracking-wide text-ink-faint">
+			Reference {page.error.id}
+		</p>
+	{/if}
+
 	<a
 		href="/"
 		class="mt-7 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-background transition-transform hover:-translate-y-0.5"

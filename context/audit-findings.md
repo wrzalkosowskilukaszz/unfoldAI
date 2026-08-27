@@ -24,7 +24,7 @@ the single source of truth for what is left.
 | # | Finding | Status |
 |---|---|---|
 | 5 | Shared password only — no per-user identity, revocation or audit. Acceptable for a beta with people you know. | ☐ open |
-| 6 | Nothing watches production. No error monitoring, no uptime check, no alerting. Add Sentry free tier. | ☐ open |
+| 6 | ~~Nothing watches production.~~ **DONE 27 Aug.** `handleError` on both server and client. Every unhandled error gets a short reference shown on the error page and written as structured JSON, so a bug report is greppable. Forwards to Sentry when `SENTRY_DSN` is set — optional, and useful without it. Messages are truncated and error properties are never serialised, so brief content cannot leak into logs. Still no uptime pinger. | ☑ done |
 | 7 | No product analytics — roadmap decisions currently have no evidence behind them. | ☐ open |
 | 8 | No meta description, Open Graph, canonical or sitemap. | ☐ open |
 

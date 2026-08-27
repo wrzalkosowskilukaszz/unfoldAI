@@ -1,4 +1,5 @@
-import { redirect, type Handle } from '@sveltejs/kit';
+import { redirect, type Handle, type HandleServerError } from '@sveltejs/kit';
+import { errorId, reportError } from '$lib/server/observability';
 import { checkRateLimit } from '$lib/server/rateLimit';
 import { AUTH_COOKIE, isAuthConfigured, isValidSession } from '$lib/server/auth';
 
@@ -74,4 +75,27 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	return response;
+};
+
+/**
+ * Every unhandled server error gets an id that is both logged and shown to the
+ * user, so a bug report carries something greppable instead of "it broke".
+ */
+export const handleError: HandleServerError = ({ error, event, status }) => {
+	const id = errorId();
+	reportError(error, {
+		id,
+		where: 'server',
+		route: event.url.pathname,
+		method: event.request.method,
+		status
+	});
+
+	return {
+		message:
+			status === 404
+				? 'That page does not exist.'
+				: 'Something went wrong on our side. Your briefs are safe in this browser.',
+		id
+	};
 };

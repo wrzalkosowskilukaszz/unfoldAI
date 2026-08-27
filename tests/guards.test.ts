@@ -220,3 +220,55 @@ describe('what the beta password does and does not hide', () => {
 		expect(src).toContain('redirect(303, UNLOCK_PATH)');
 	});
 });
+
+describe('errors are traceable', () => {
+	beforeEach(() => {
+		delete env.SENTRY_DSN;
+		vi.resetModules();
+	});
+
+	it('gives every error a short, quotable reference', async () => {
+		const { errorId } = await import('$lib/server/observability');
+		const ids = new Set(Array.from({ length: 200 }, () => errorId()));
+		expect(ids.size, 'ids must not collide in normal use').toBeGreaterThan(190);
+		for (const id of ids) {
+			expect(id, 'short enough to read aloud or paste').toMatch(/^[A-Z0-9]{4,6}$/);
+		}
+	});
+
+	it('logs structured JSON and never leaks brief content', async () => {
+		const { reportError } = await import('$lib/server/observability');
+		const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		const secret = 'CONFIDENTIAL client budget 40k';
+		const err = new Error('Request failed');
+		(err as Error & { brief?: string }).brief = secret;
+		reportError(err, { id: 'ABC123', where: 'server', route: '/api/review-brief', method: 'POST' });
+
+		const logged = spy.mock.calls[0][0] as string;
+		const parsed = JSON.parse(logged);
+		expect(parsed.type).toBe('error');
+		expect(parsed.id).toBe('ABC123');
+		expect(parsed.route).toBe('/api/review-brief');
+		expect(logged, 'attached brief content must never reach the log').not.toContain(secret);
+		spy.mockRestore();
+	});
+
+	it('truncates a huge message rather than dumping it', async () => {
+		const { reportError } = await import('$lib/server/observability');
+		const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		reportError(new Error('x'.repeat(5000)), { id: 'Z', where: 'server' });
+		const parsed = JSON.parse(spy.mock.calls[0][0] as string);
+		expect(parsed.message.length).toBeLessThanOrEqual(300);
+		spy.mockRestore();
+	});
+
+	it('does not attempt to forward when no DSN is configured', async () => {
+		const { reportError } = await import('$lib/server/observability');
+		const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}'));
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		reportError(new Error('boom'), { id: 'Q', where: 'server' });
+		expect(fetchSpy, 'no DSN means no outbound call').not.toHaveBeenCalled();
+		vi.restoreAllMocks();
+	});
+})

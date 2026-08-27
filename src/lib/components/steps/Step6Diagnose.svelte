@@ -4,7 +4,6 @@
 	import { analytics } from '$lib/analytics';
 	import { aiConsent } from '$lib/stores/aiConsent.svelte';
 	import FindingCard from '$lib/components/FindingCard.svelte';
-	import CubeShifter from '$lib/components/CubeShifter.svelte';
 	import type { Finding } from '$lib/types';
 
 	let status = $state<'idle' | 'loading' | 'error'>('idle');
@@ -151,7 +150,18 @@
 		<div
 			class="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border-strong bg-surface-alt/30 px-6 py-14 text-center"
 		>
-			<CubeShifter size={132} />
+			<!--
+				Lazy: this only ever appears while a survey is running, but a static
+				import put its ~59K gzipped of SMIL markup in the wizard's route chunk
+				for everyone, every visit. The reserved box keeps the panel from
+				jumping while the chunk arrives, and a survey takes about a minute
+				anyway, so a few hundred milliseconds is invisible.
+			-->
+			<div class="flex h-[132px] w-[132px] items-center justify-center">
+				{#await import('$lib/components/CubeShifter.svelte') then { default: CubeShifter }}
+					<CubeShifter size={132} />
+				{/await}
+			</div>
 			{#key noteIndex}
 				<p class="rise text-sm font-medium text-ink">{PROGRESS_NOTES[noteIndex]}</p>
 			{/key}

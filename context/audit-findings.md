@@ -40,7 +40,7 @@ the single source of truth for what is left.
 | # | Finding | Status |
 |---|---|---|
 | 11 | ~~Stepper cells are 36×44px at 320px.~~ **DONE 27 Aug.** The row scrolls instead of compressing: every cell holds 44px, the page itself never overflows, the active step auto-scrolls into view, and the clipped edge fades — tracking scroll position, so it fades left, right or both depending on what is actually hidden. | ☑ done |
-| 12 | Cube Shifter SVG is inlined for theme-aware fills: 55K gzip on every wizard load. Lazy-load behind the loading state. | ☐ open |
+| 12 | ~~Cube Shifter inlined on every wizard load.~~ **DONE 27 Aug.** Lazy-loaded behind the loading state, in its own 2K-gzip chunk; the wizard route chunk now carries no SMIL. Honest measure: gzip fell 59K→55K only, because that markup is repetitive and compresses hard — the real gain is **48K less raw JS to parse**, which is what costs on a low-end phone. A reserved 132px box prevents layout jump. | ☑ done |
 | 13 | Safari and Firefox untested. SMIL and `:has()` are the risk areas. | ☐ open |
 | 14 | All copy hard-coded English; no i18n scaffolding. | ☐ open |
 

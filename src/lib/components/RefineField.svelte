@@ -3,6 +3,7 @@
 	import { marked } from 'marked';
 	import DOMPurify from 'isomorphic-dompurify';
 	import { briefStore } from '$lib/stores/brief.svelte';
+	import { aiConsent } from '$lib/stores/aiConsent.svelte';
 	import type { HelpAnswer, SectionKey } from '$lib/types';
 	import QuestionFlow from '$lib/components/QuestionFlow.svelte';
 
@@ -23,6 +24,9 @@
 	);
 
 	async function refine(regenerate: boolean) {
+		// Text is about to leave the device; make sure the person has been told.
+		if (!(await aiConsent.ensure())) return;
+
 		briefStore.setStatus(sectionKey, 'loading');
 		try {
 			const res = await fetch('/api/refine-section', {

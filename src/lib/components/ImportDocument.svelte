@@ -10,6 +10,7 @@
 		Pencil
 	} from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
+	import { aiConsent } from '$lib/stores/aiConsent.svelte';
 	import { SECTION_LABELS, SECTION_ORDER, type SectionKey } from '$lib/types';
 
 	let { oncancel, onopen }: { oncancel: () => void; onopen: (id: string) => void } = $props();
@@ -86,6 +87,9 @@
 	}
 
 	async function sortDocument(text: string) {
+		// Text is about to leave the device; make sure the person has been told.
+		if (!(await aiConsent.ensure())) return;
+
 		try {
 			const res = await fetch('/api/parse-document', {
 				method: 'POST',

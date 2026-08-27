@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { ScanSearch, Loader2, AlertTriangle, RefreshCw, Sparkles } from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
+	import { aiConsent } from '$lib/stores/aiConsent.svelte';
 	import FindingCard from '$lib/components/FindingCard.svelte';
 	import CubeShifter from '$lib/components/CubeShifter.svelte';
 	import type { Finding } from '$lib/types';
@@ -59,6 +60,9 @@
 	);
 
 	async function runReview() {
+		// Text is about to leave the device; make sure the person has been told.
+		if (!(await aiConsent.ensure())) return;
+
 		status = 'loading';
 		errorMsg = null;
 		startNotes();

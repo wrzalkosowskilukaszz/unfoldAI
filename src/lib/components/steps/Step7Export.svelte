@@ -12,6 +12,7 @@
 		ScanSearch
 	} from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
+	import { aiConsent } from '$lib/stores/aiConsent.svelte';
 	import { compileBriefBody, compileBriefMarkdown } from '$lib/markdown';
 	import { SECTION_LABELS } from '$lib/types';
 
@@ -90,6 +91,9 @@
 	}
 
 	async function polishBrief() {
+		// Text is about to leave the device; make sure the person has been told.
+		if (!(await aiConsent.ensure())) return;
+
 		polishState = 'loading';
 		polishError = null;
 		try {

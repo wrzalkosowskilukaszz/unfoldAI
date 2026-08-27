@@ -10,6 +10,7 @@
 		CheckCheck
 	} from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
+	import { aiConsent } from '$lib/stores/aiConsent.svelte';
 	import {
 		MAX_HELP_QUESTIONS,
 		type HelpAnswer,
@@ -67,6 +68,9 @@
 	}
 
 	async function fetchNext() {
+		// Text is about to leave the device; make sure the person has been told.
+		if (!(await aiConsent.ensure())) return;
+
 		loading = true;
 		errorMsg = null;
 		try {

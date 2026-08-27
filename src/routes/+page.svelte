@@ -5,6 +5,7 @@
 	import StepNav from '$lib/components/StepNav.svelte';
 	import { themeStore } from '$lib/stores/theme.svelte';
 	import BriefsList from '$lib/components/BriefsList.svelte';
+	import AiFirstUseNotice from '$lib/components/AiFirstUseNotice.svelte';
 	import SaveIndicator from '$lib/components/SaveIndicator.svelte';
 	import ImportDocument from '$lib/components/ImportDocument.svelte';
 	import Step1Metadata from '$lib/components/steps/Step1Metadata.svelte';
@@ -268,3 +269,6 @@
 		</main>
 	</div>
 {/if}
+
+<!-- One instance for the whole app: any AI action awaits aiConsent.ensure(). -->
+<AiFirstUseNotice />

@@ -256,3 +256,60 @@ describe('deleting', () => {
 		expect(store.briefs[b], 'the other brief is untouched').toBeTruthy();
 	});
 });
+
+describe('AI disclosure', () => {
+	async function freshConsent() {
+		vi.resetModules();
+		return (await import('$lib/stores/aiConsent.svelte')).aiConsent;
+	}
+
+	it('blocks the first AI action until acknowledged', async () => {
+		const consent = await freshConsent();
+		let proceeded = false;
+		const p = consent.ensure().then((ok) => (proceeded = ok));
+
+		// Nothing may reach the model while the notice is on screen.
+		expect(consent.pending).toBe(true);
+		expect(proceeded).toBe(false);
+
+		consent.acknowledge();
+		await p;
+		expect(proceeded, 'acknowledging continues the action the user asked for').toBe(true);
+		expect(consent.pending).toBe(false);
+	});
+
+	it('cancels the action when declined, and does not record consent', async () => {
+		const consent = await freshConsent();
+		const result = consent.ensure();
+		consent.cancel();
+		expect(await result, 'declining must abort the request').toBe(false);
+		expect(
+			localStorage.getItem('surveyvor-ai-notice-seen-v1'),
+			'declining is not consent and must not be remembered'
+		).toBeNull();
+	});
+
+	it('never shows again once acknowledged, including after a reload', async () => {
+		const first = await freshConsent();
+		const p = first.ensure();
+		first.acknowledge();
+		await p;
+
+		// Simulate a fresh page load with the same storage.
+		const second = await freshConsent();
+		expect(second.seen).toBe(true);
+		await expect(second.ensure()).resolves.toBe(true);
+		expect(second.pending, 'no dialog on subsequent use').toBe(false);
+	});
+
+	it('shows the notice rather than assuming consent when storage is unreadable', async () => {
+		const original = localStorage.getItem;
+		// A browser with storage blocked must not silently skip the disclosure.
+		localStorage.getItem = () => {
+			throw new Error('blocked');
+		};
+		const consent = await freshConsent();
+		localStorage.getItem = original;
+		expect(consent.seen, 'fail towards showing it, never towards skipping it').toBe(false);
+	});
+});

@@ -34,8 +34,12 @@ export function isValidSession(cookieValue: string | undefined): boolean {
 }
 
 export function isCorrectPassword(candidate: string): boolean {
+	// Must agree with isAuthConfigured about what counts as a password. It did
+	// not: a whitespace-only APP_PASSWORD left the gate disabled while this
+	// function still accepted that whitespace as valid, so the two disagreed
+	// about whether the deployment was protected.
+	if (!isAuthConfigured()) return false;
 	const expected = env.APP_PASSWORD ?? '';
-	if (!expected) return false;
 	// Hash both sides first so the comparison length never leaks the real length.
 	const a = createHash('sha256').update(candidate).digest();
 	const b = createHash('sha256').update(expected).digest();

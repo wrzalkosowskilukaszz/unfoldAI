@@ -9,6 +9,7 @@ re-deriving any of it:
 
 | File | Read it before |
 |---|---|
+| `context/audit-findings.md` | **start here** — the tracked pre-launch fix list and its status |
 | `context/deployment.md` | deploying, touching env vars, or debugging the live site |
 | `context/naming.md` | proposing a name change — two are already dead, and why matters |
 | `context/brand-voice.md` | writing any user-facing copy; holds unused lines worth using |

@@ -8,8 +8,7 @@
 	 * symmetry — so the motion is the mark's own, not a template applied to it.
 	 *
 	 *   seed      a dot pulses at the centre (anticipation)
-	 *   spin-in   the S bursts from the dot, spinning up on a spring and locking,
-	 *             an arc trail drawn in its wake chases itself out
+	 *   spin-in   the S bursts from the dot, spinning up on a spring and locking
 	 *   landing   the disc pops in behind it with squash and stretch, and the
 	 *             signet wobbles once (follow-through)
 	 *   throw     the signet tilts toward the empty space and springs back —
@@ -105,15 +104,12 @@
 				<circle class="seed" cx="85.9" cy="85.96" r="7" fill={BLADE_FILL} />
 				<path class="disc" fill={DISC_FILL} d={DISC} />
 
-				<!-- Arc trail drawn in the wake of the spin; it chases itself out. -->
-				<circle class="trail" cx="85.9" cy="85.96" r="98" pathLength="1" />
-
 				<!-- The signet: spins up, locks, wobbles, then throws the word. -->
 				<g class="signet">
 					<path fill={BLADE_FILL} d={BLADE} />
 				</g>
 
-				<g class="word" clip-path="url(#intro-wipe)">
+				<g class="word" fill="currentColor" clip-path="url(#intro-wipe)">
 					{#each LETTERS as d, i}
 						<path {d} style:animation-delay="{900 + i * 52}ms" />
 					{/each}
@@ -199,23 +195,6 @@
 		animation: land 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.58s forwards;
 	}
 
-	.trail {
-		fill: none;
-		stroke: var(--c-accent);
-		stroke-width: 1.4;
-		stroke-linecap: round;
-		stroke-dasharray: 0.55 1;
-		stroke-dashoffset: 0.55;
-		transform-box: view-box;
-		transform-origin: 85.9px 85.96px;
-		transform: rotate(-130deg);
-		/* Drawn by the head advancing, then removed by the tail catching up. */
-		animation:
-			trail-draw 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards,
-			trail-spin 0.6s var(--spring-big) 0.14s forwards,
-			trail-out 0.32s cubic-bezier(0.6, 0, 0.8, 0.4) 0.66s forwards;
-	}
-
 	.wipe {
 		transform-box: fill-box;
 		transform-origin: left center;
@@ -283,21 +262,6 @@
 		}
 		100% {
 			transform: scale(1);
-		}
-	}
-	@keyframes trail-draw {
-		to {
-			stroke-dashoffset: 0;
-		}
-	}
-	@keyframes trail-spin {
-		to {
-			transform: rotate(0deg);
-		}
-	}
-	@keyframes trail-out {
-		to {
-			stroke-dashoffset: -0.55;
 		}
 	}
 	@keyframes wipe {

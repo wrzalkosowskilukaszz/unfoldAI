@@ -1,6 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
+import { parseModelJson, textOf } from '$lib/server/model';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
 import { projectCoherence, projectLens, roleFraming } from '$lib/server/role';
@@ -47,12 +48,6 @@ interface RequestBody {
 	decisions?: { dimension: string; title: string; resolution?: string }[];
 }
 
-function stripCodeFences(text: string): string {
-	const trimmed = text.trim();
-	const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
-	return fenced ? fenced[1] : trimmed;
-}
-
 function sanitizeFinding(value: unknown, index: number): Finding | null {
 	if (!value || typeof value !== 'object') return null;
 	const f = value as Record<string, unknown>;
@@ -93,12 +88,19 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const { meta = {}, sections = {}, helpHistory = [], decisions = [] } = body;
 
-	const hasContent = Object.values(sections).some((v) => v && v.trim());
+	const hasContent = Object.values(sections).some((v) => typeof v === 'string' && v.trim());
 	if (!hasContent) {
 		throw error(400, 'There is nothing to review yet — fill in a few sections first.');
 	}
 
-	if (tooLong(...Object.values(sections))) {
+	// Everything interpolated into the prompt counts, not only the sections.
+	if (
+		tooLong(
+			...Object.values(sections),
+			...helpHistory.flatMap((e) => [e.question, e.answer]),
+			...decisions.flatMap((d) => [d.dimension, d.title, d.resolution])
+		)
+	) {
 		throw error(413, 'That is more text than this tool can process at once. Please trim it down.');
 	}
 
@@ -177,17 +179,9 @@ Review this project and return your findings.`;
 		throw error(502, 'The review ran long and got cut off. Please try again.');
 	}
 
-	const rawText = message.content
-		.filter((block) => block.type === 'text')
-		.map((block) => block.text)
-		.join('\n')
-		.trim();
-
-	let parsed: unknown;
-	try {
-		parsed = JSON.parse(stripCodeFences(rawText));
-	} catch {
-		console.error('Failed to parse review JSON:', rawText);
+	const parsed = parseModelJson(textOf(message));
+	if (parsed === null) {
+		console.error('Failed to parse review JSON');
 		throw error(502, "The AI's response couldn't be read. Please try again.");
 	}
 

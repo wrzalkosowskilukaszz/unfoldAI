@@ -6,7 +6,7 @@
 	 * optical mass than its bounding box, so matching their pixel height reads
 	 * noticeably smaller on the page.
 	 */
-	let { size = 30, showWordmark = true }: { size?: number; showWordmark?: boolean } = $props();
+	let { size = 30 }: { size?: number } = $props();
 </script>
 
 <div class="flex items-center gap-2.5">
@@ -28,7 +28,5 @@
 		<path fill="#7d6bff" d="M239.6,144.8c-2.7,20-13.7,39.7-29.3,55.4-15.6,15.7-35.7,27.3-56.8,31.3L.6,260l81.3-71.6,110-20.5,20.3-17.9-110,20.5h0s-15.6,2.9-15.6,2.9c-42.1,7.9-71.7-18.2-66.3-58.2s13.7-39.7,29.3-55.4c15.6-15.7,35.7-27.3,56.8-31.3L259.4,0l-81.3,71.6-109.9,20.5-20.3,17.9,125.5-23.4c42.1-7.9,71.7,18.2,66.3,58.2Z" />
 	</svg>
 
-	{#if showWordmark}
-		<span class="font-display text-xl font-semibold tracking-[-0.02em] text-ink"> Surveyvor </span>
-	{/if}
+	<span class="font-display text-xl font-semibold tracking-[-0.02em] text-ink"> Surveyvor </span>
 </div>

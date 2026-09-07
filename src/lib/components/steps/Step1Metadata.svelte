@@ -23,7 +23,7 @@
 
 <div class="space-y-6">
 	<div>
-		<h2 class="font-display text-xl font-semibold text-ink">Project Metadata &amp; Basics</h2>
+		<h2 class="font-display text-xl font-semibold text-ink">Project basics</h2>
 		<p class="mt-1 text-sm text-ink-soft">Set the fundamentals before diving into the brief.</p>
 	</div>
 

@@ -1,6 +1,6 @@
 import { redirect, type Handle, type HandleServerError } from '@sveltejs/kit';
 import { errorId, reportError } from '$lib/server/observability';
-import { checkRateLimit } from '$lib/server/rateLimit';
+import { checkDailyCeiling, checkRateLimit } from '$lib/server/rateLimit';
 import { AUTH_COOKIE, isAuthConfigured, isValidSession } from '$lib/server/auth';
 
 const UNLOCK_PATH = '/unlock';
@@ -54,6 +54,26 @@ export const handle: Handle = async ({ event, resolve }) => {
 					headers: {
 						'Content-Type': 'application/json',
 						'Retry-After': String(retryAfterSeconds)
+					}
+				}
+			);
+		}
+
+		// Whole-service ceiling, so many addresses cannot do together what one
+		// cannot do alone. Checked second: a blocked address should not burn it.
+		const day = await checkDailyCeiling();
+		if (!day.ok) {
+			console.warn(JSON.stringify({ type: 'rateLimit', event: 'daily_ceiling_hit' }));
+			return new Response(
+				JSON.stringify({
+					message:
+						"Surveyvor has reached today's AI budget. Your brief is safe in this browser — please try again tomorrow."
+				}),
+				{
+					status: 429,
+					headers: {
+						'Content-Type': 'application/json',
+						'Retry-After': String(day.retryAfterSeconds)
 					}
 				}
 			);

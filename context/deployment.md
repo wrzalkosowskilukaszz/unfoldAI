@@ -17,7 +17,12 @@ Both are set on Production. **Never add the key without the password** — that
 puts a public spend button on the internet.
 
 - `ANTHROPIC_API_KEY` — required, server-side only
-- `APP_PASSWORD` — the shared access gate. Unset means the app is wide open.
+- `APP_PASSWORD` — the shared access gate. **Unset means the app is public**,
+  which is the intended state from September 2026 on. Set it again to close the
+  beta; nothing else changes.
+- `DAILY_AI_CALL_LIMIT` — optional, default 1000. Whole-service ceiling on AI
+  calls per day; users past it get a friendly 429 until the window rolls over.
+  Cheap insurance under the Anthropic hard cap once there is no password.
 - `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` — required in
   production. Without them the rate limiter counts in each function instance's
   own memory, so the limit is per-instance rather than per-person and the spend
@@ -34,11 +39,37 @@ public environment variable prefix"; `vercel env add NAME production` bypasses i
 The CLI token expires. If `vercel --prod` says "Not authorized", run
 `vercel login` — or just push to `main`, which deploys anyway.
 
-## Verifying a deploy
+## Going public (removing the password)
+
+Everything in code is already in place: the root page serves real title and
+social-card tags without JavaScript, the sitemap drops `/unlock` on its own,
+the lock control hides itself, and the daily ceiling takes over from the gate.
+The only action is in Vercel, and it needs a redeploy to take effect:
 
 ```bash
-curl -s -o /dev/null -w "%{http_code} -> %{redirect_url}\n" https://unfoldai-seven.vercel.app/
-curl -s -o /dev/null -w "%{http_code}\n" -X POST https://unfoldai-seven.vercel.app/api/review-brief -H 'content-type: application/json' -d '{}'
+vercel env rm APP_PASSWORD production
+git commit --allow-empty -m "Redeploy: open the beta" && git push
+```
+
+Check afterwards, and only walk away when all three are right:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" https://surveyvor.app/          # 200 (was 303 -> /unlock)
+curl -s https://surveyvor.app/ | grep -c 'og:title'                        # 1 — link previews work
+curl -s -o /dev/null -w "%{http_code}\n" -X POST https://surveyvor.app/api/review-brief -H 'content-type: application/json' -d '{}'   # 400 (was 401)
+```
+
+A 400 from the API is correct once the gate is off: it means the request
+reached validation. What must **never** appear is a 200 or 502 for an empty
+body. Also confirm the Upstash variables are still set — without them the
+per-address limit is per function instance and the ceiling is the only thing
+left.
+
+## Verifying a deploy (while the password is set)
+
+```bash
+curl -s -o /dev/null -w "%{http_code} -> %{redirect_url}\n" https://surveyvor.app/
+curl -s -o /dev/null -w "%{http_code}\n" -X POST https://surveyvor.app/api/review-brief -H 'content-type: application/json' -d '{}'
 ```
 
 Healthy: `303 -> /unlock` and `401`. A **400 or 502 from the API means the gate

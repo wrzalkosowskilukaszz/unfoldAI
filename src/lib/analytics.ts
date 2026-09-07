@@ -50,8 +50,5 @@ export const analytics = {
 		send('finding_settled', { how, kind }),
 
 	briefExported: (how: 'download' | 'copy' | 'print', hadOpenItems: boolean) =>
-		send('brief_exported', { how, hadOpenItems }),
-
-	/** Fired where someone abandons, so drop-off is visible. */
-	stepReached: (step: number, label: string) => send('step_reached', { step, label })
+		send('brief_exported', { how, hadOpenItems })
 };

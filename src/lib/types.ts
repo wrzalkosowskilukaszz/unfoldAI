@@ -114,9 +114,6 @@ export interface SavedBrief {
 	lastExportedAt: string | null;
 }
 
-/** Default steps, for when no template is chosen. Prefer stepLabelsFor(). */
-export const STEP_LABELS = ['Basics', 'Objectives', 'Audience', 'Deliverables', 'Constraints', 'Survey', 'Export'];
-
 export interface SectionDef {
 	/** Short name, used in the stepper and as the field label. */
 	label: string;
@@ -225,15 +222,8 @@ export const CORE_SECTIONS: SectionKey[] = [
 	'constraints'
 ];
 
-/** Back-compat: the default set, used when no template is chosen. */
-export const SECTION_ORDER: SectionKey[] = CORE_SECTIONS;
-
 export const SECTION_LABELS: Record<string, string> = Object.fromEntries(
 	Object.entries(SECTION_DEFS).map(([k, d]) => [k, d.heading])
-);
-
-export const SECTION_PLACEHOLDERS: Record<string, string> = Object.fromEntries(
-	Object.entries(SECTION_DEFS).map(([k, d]) => [k, d.placeholder])
 );
 
 /**

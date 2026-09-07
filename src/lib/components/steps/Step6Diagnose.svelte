@@ -3,6 +3,7 @@
 	import { briefStore } from '$lib/stores/brief.svelte';
 	import { analytics } from '$lib/analytics';
 	import { aiConsent } from '$lib/stores/aiConsent.svelte';
+	import { postJson } from '$lib/api';
 	import FindingCard from '$lib/components/FindingCard.svelte';
 	import type { Finding } from '$lib/types';
 
@@ -70,37 +71,20 @@
 			const sections: Record<string, string> = {};
 			for (const key of briefStore.sectionKeys) sections[key] = briefStore.sections[key]?.raw ?? '';
 
-			const res = await fetch('/api/review-brief', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					meta: briefStore.meta,
-					sections,
-					helpHistory: briefStore.helpHistory,
-					decisions: briefStore.decisions.map((d) => ({
-						dimension: d.dimension,
-						title: d.title,
-						resolution: d.resolution
-					}))
-				})
+			const data = await postJson<{ findings: Finding[] }>('/api/review-brief', {
+				meta: briefStore.meta,
+				sections,
+				helpHistory: briefStore.helpHistory,
+				decisions: briefStore.decisions.map((d) => ({
+					dimension: d.dimension,
+					title: d.title,
+					resolution: d.resolution
+				}))
 			});
-
-			if (!res.ok) {
-				let message = `Request failed (${res.status})`;
-				try {
-					const data = await res.json();
-					if (data?.message) message = data.message;
-				} catch {
-					// non-JSON error body — keep the generic message
-				}
-				throw new Error(message);
-			}
-
-			const data = await res.json();
-			briefStore.setFindings(data.findings as Finding[]);
+			briefStore.setFindings(data.findings);
 			analytics.surveyRun({
 				template: briefStore.meta.projectType,
-				findings: (data.findings as Finding[]).length,
+				findings: data.findings.length,
 				sections: briefStore.sectionKeys.length
 			});
 			status = 'idle';
@@ -115,7 +99,8 @@
 
 <div class="space-y-6">
 	<div class="flex flex-wrap items-start justify-between gap-3">
-		<div>
+		<!-- Capped so the action sits beside the heading instead of under it. -->
+		<div class="max-w-lg">
 			<h2 class="font-display text-xl font-semibold text-ink">What's still unknown</h2>
 			<p class="mt-1 text-sm text-ink-soft">
 				Surveyvor read the whole project. Here is the terrain — what's established, what's assumed, and what nobody has settled.

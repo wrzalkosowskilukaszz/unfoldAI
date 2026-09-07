@@ -38,8 +38,8 @@ interface Bucket {
 }
 const buckets = new Map<string, Bucket>();
 
-function checkInMemory(key: string, now: number, limit = LIMIT): RateLimitResult {
-	const cutoff = now - WINDOW_MS;
+function checkInMemory(key: string, now: number, limit: number, windowMs: number): RateLimitResult {
+	const cutoff = now - windowMs;
 
 	if (buckets.size > MAX_BUCKETS) {
 		for (const [k, v] of buckets) {
@@ -57,7 +57,7 @@ function checkInMemory(key: string, now: number, limit = LIMIT): RateLimitResult
 		const oldest = bucket.hits[0];
 		return {
 			ok: false,
-			retryAfterSeconds: Math.max(1, Math.ceil((oldest + WINDOW_MS - now) / 1000)),
+			retryAfterSeconds: Math.max(1, Math.ceil((oldest + windowMs - now) / 1000)),
 			durable: false
 		};
 	}
@@ -107,10 +107,11 @@ async function checkRedis(
 	client: RedisLike,
 	key: string,
 	now: number,
-	limit = LIMIT
+	limit: number,
+	windowMs: number
 ): Promise<RateLimitResult> {
-	const windowId = Math.floor(now / WINDOW_MS);
-	const elapsed = now - windowId * WINDOW_MS;
+	const windowId = Math.floor(now / windowMs);
+	const elapsed = now - windowId * windowMs;
 	const currentKey = `rl:${key}:${windowId}`;
 	const previousKey = `rl:${key}:${windowId - 1}`;
 
@@ -121,16 +122,16 @@ async function checkRedis(
 
 	// Expire a little past two windows so the previous bucket is still readable.
 	if (current === 1) {
-		await client.expire(currentKey, Math.ceil((WINDOW_MS * 2) / 1000));
+		await client.expire(currentKey, Math.ceil((windowMs * 2) / 1000));
 	}
 
 	const previous = Number(previousRaw ?? 0) || 0;
-	const weighted = previous * (1 - elapsed / WINDOW_MS) + current;
+	const weighted = previous * (1 - elapsed / windowMs) + current;
 
 	if (weighted > limit) {
 		return {
 			ok: false,
-			retryAfterSeconds: Math.max(1, Math.ceil((WINDOW_MS - elapsed) / 1000)),
+			retryAfterSeconds: Math.max(1, Math.ceil((windowMs - elapsed) / 1000)),
 			durable: true
 		};
 	}
@@ -141,8 +142,14 @@ async function checkRedis(
  * @param limit Overrides the default allowance. Password attempts get a much
  *   tighter one than AI calls: 25 tries per ten minutes is generous for a
  *   human who mistyped and far too generous for someone guessing.
+ * @param windowMs How long the allowance lasts. Ten minutes by default; the
+ *   global ceiling below uses a day.
  */
-export async function checkRateLimit(key: string, limit = LIMIT): Promise<RateLimitResult> {
+export async function checkRateLimit(
+	key: string,
+	limit = LIMIT,
+	windowMs = WINDOW_MS
+): Promise<RateLimitResult> {
 	const now = Date.now();
 	const client = await getRedis();
 
@@ -154,16 +161,16 @@ export async function checkRateLimit(key: string, limit = LIMIT): Promise<RateLi
 					'not per user. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.'
 			);
 		}
-		return checkInMemory(key, now, limit);
+		return checkInMemory(key, now, limit, windowMs);
 	}
 
 	try {
-		return await checkRedis(client, key, now, limit);
+		return await checkRedis(client, key, now, limit, windowMs);
 	} catch (err) {
 		// A Redis blip must not lock every user out, but it must not remove the
 		// ceiling either — drop to the in-process limiter and say so.
 		console.error('[rateLimit] Redis unavailable; using in-process fallback', err);
-		return checkInMemory(key, now, limit);
+		return checkInMemory(key, now, limit, windowMs);
 	}
 }
 
@@ -187,3 +194,19 @@ export function tooLong(...values: (string | undefined)[]): boolean {
 
 /** Password attempts. Deliberately far tighter than the AI allowance. */
 export const AUTH_ATTEMPT_LIMIT = 8;
+
+/**
+ * Ceiling on AI calls per day across everyone. The per-IP limit stops one
+ * person running up a bill; this stops many IPs doing it together, which is
+ * what an open deployment invites. It is a spend cap with a friendly message,
+ * sitting under the hard cap in the Anthropic Console. Override with
+ * DAILY_AI_CALL_LIMIT in the host env; no redeploy needed beyond the var.
+ */
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DEFAULT_DAILY_AI_CALLS = 1000;
+
+export async function checkDailyCeiling(): Promise<RateLimitResult> {
+	const configured = Number(env.DAILY_AI_CALL_LIMIT);
+	const limit = Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_DAILY_AI_CALLS;
+	return checkRateLimit('global:ai', limit, DAY_MS);
+}

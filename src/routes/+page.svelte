@@ -16,8 +16,26 @@
 	import { briefStore } from '$lib/stores/brief.svelte';
 	import Seo from '$lib/components/Seo.svelte';
 	import { page } from '$app/state';
+	import { afterNavigate } from '$app/navigation';
 	import { untrack } from 'svelte';
 	import { go, replace, readPosition } from '$lib/navigation.svelte';
+
+	/**
+	 * Nothing below the <Seo> renders on the server. The page is built from
+	 * localStorage, which the server cannot see — but the server still has to
+	 * send the title, description and social card, because link previews on
+	 * LinkedIn, Slack and iMessage never run JavaScript. So: real head tags,
+	 * empty body, and the app mounts into it exactly as it did when the route
+	 * was client-only.
+	 *
+	 * `ready` also gates every pushState/replaceState below. afterNavigate
+	 * fires for the initial load too, one synchronous step before the router
+	 * marks itself started, so the flag is set a microtask later — calling
+	 * replaceState from an effect during mount throws in dev and, worse, the
+	 * throw tears the component down.
+	 */
+	let ready = $state(false);
+	afterNavigate(() => queueMicrotask(() => (ready = true)));
 
 	/**
 	 * The wizard's shape comes from the brief's template: Basics, one step per
@@ -31,6 +49,15 @@
 	let { data }: { data: { gated: boolean } } = $props();
 
 	let view = $state<'gallery' | 'wizard' | 'import'>('gallery');
+
+	/**
+	 * The full hero is for someone who has never seen the product. Someone with
+	 * briefs, or who has just come to import one, is here to work — for them
+	 * the same headline shrinks to a masthead so their briefs sit above the
+	 * fold, and the illustration steps aside: at a small size beside a small
+	 * line it read as a sticker, not a companion.
+	 */
+	let compactHero = $derived(view === 'import' || !briefStore.isEmpty);
 
 	/**
 	 * The URL drives the view, not the other way round — which is what makes the
@@ -57,17 +84,30 @@
 		});
 	});
 
+	/**
+	 * Steps replace rather than push: Back should leave the brief, not crawl
+	 * through every step someone clicked on the way in. Done here, from the
+	 * store, rather than at each call site — a step change made deep inside a
+	 * component (Export's "Review it first") must update the URL too, or a
+	 * refresh lands somewhere else.
+	 */
+	$effect(() => {
+		const step = briefStore.step;
+		const briefId = briefStore.activeBriefId;
+		if (!ready || view !== 'wizard' || !briefId) return;
+		untrack(() => {
+			if (readPosition(page.url).step !== step) replace({ view: 'wizard', briefId, step });
+		});
+	});
+
 	function openBrief(id: string) {
 		briefStore.openBrief(id);
 		view = 'wizard';
 		go({ view: 'wizard', briefId: id, step: briefStore.step });
 	}
 
-	/** Steps replace rather than push: Back should leave the brief, not crawl
-	 *  through every step someone clicked on the way in. */
 	function jumpToStep(step: number) {
 		briefStore.goToStep(step);
-		replace({ view: 'wizard', briefId: briefStore.activeBriefId, step: briefStore.step });
 	}
 
 	function toGallery() {
@@ -82,12 +122,13 @@
 </script>
 
 <Seo
-	title="Surveyvor"
-	description="Turn messy project input into a brief you can trust. Surveyvor uncovers assumptions, contradictions and unresolved decisions before they become expensive problems."
-	index={false}
+	title="Surveyvor — Survey the project before you build it"
+	description="An AI briefing tool for creative teams. Surveyvor uncovers the assumptions, contradictions and unresolved decisions hiding in a brief — before they become expensive problems."
 />
 
-{#if view === 'gallery' || view === 'import'}
+{#if !ready}
+	<!-- Server render and the first client frame: head tags only. -->
+{:else if view === 'gallery' || view === 'import'}
 	<!-- Gallery: full-bleed editorial opening, no chrome competing with the headline. -->
 	<div class="relative min-h-screen">
 		<div
@@ -121,36 +162,46 @@
 				</div>
 			</div>
 
-			<header class="mt-12 grid items-center gap-10 md:mt-16 md:grid-cols-[1fr_auto] md:gap-14">
+			<header
+				class="grid items-center md:grid-cols-[1fr_auto] {compactHero
+					? 'mt-8 gap-6 md:mt-10 md:gap-10'
+					: 'mt-12 gap-10 md:mt-16 md:gap-14'}"
+			>
 				<div>
 					<h1
-						class="font-display text-[2.05rem] leading-[1.06] font-semibold tracking-[-0.03em] text-ink sm:text-[2.9rem] sm:leading-[1.04] sm:tracking-[-0.035em] lg:text-[3.4rem]"
+						class="font-display leading-[1.06] font-semibold tracking-[-0.03em] text-ink sm:leading-[1.04] sm:tracking-[-0.035em] {compactHero
+							? 'text-[1.6rem] sm:text-[1.9rem] lg:text-[2.1rem]'
+							: 'text-[2.05rem] sm:text-[2.9rem] lg:text-[3.4rem]'}"
 					>
-						Survey the project<br class="hidden sm:block" /> before you build it
+						Survey the project<br class={compactHero ? '' : 'hidden sm:block'} /> before you build it
 					</h1>
-					<p class="mt-4 max-w-lg text-[0.98rem] leading-relaxed text-ink-soft sm:mt-5 sm:text-[1.02rem]">
-						Surveyvor uncovers assumptions, contradictions, missing information and
-						unresolved decisions — before they become expensive problems.
-					</p>
+					{#if !compactHero}
+						<p class="mt-4 max-w-lg text-[0.98rem] leading-relaxed text-ink-soft sm:mt-5 sm:text-[1.02rem]">
+							Surveyvor uncovers assumptions, contradictions, missing information and
+							unresolved decisions — before they become expensive problems.
+						</p>
+					{/if}
 				</div>
 
-				<!-- Supplied brand animation. SMIL loops on its own inside an <img>,
-				     which keeps 120KB of markup out of the JS bundle. -->
-				<div class="flex justify-center md:justify-end">
-					<div class="anim-plate">
-						<img
-							src="/hero-anim.svg"
-							alt=""
-							aria-hidden="true"
-							width="360"
-							height="360"
-							class="w-[240px] max-w-full sm:w-[300px] lg:w-[360px]"
-						/>
+				{#if !compactHero}
+					<!-- Supplied brand animation. SMIL loops on its own inside an <img>,
+					     which keeps 120KB of markup out of the JS bundle. -->
+					<div class="flex justify-center md:justify-end">
+						<div class="anim-plate">
+							<img
+								src="/hero-anim.svg"
+								alt=""
+								aria-hidden="true"
+								width="360"
+								height="360"
+								class="w-[240px] max-w-full sm:w-[300px] lg:w-[360px]"
+							/>
+						</div>
 					</div>
-				</div>
+				{/if}
 			</header>
 
-			<div class="mt-16 border-t border-border pt-10">
+			<div class="border-t border-border {compactHero ? 'mt-8 pt-8 md:mt-10' : 'mt-16 pt-10'}">
 				{#if view === 'import'}
 					<ImportDocument oncancel={toGallery} onopen={openBrief} />
 				{:else}

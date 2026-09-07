@@ -186,7 +186,7 @@
 				tabindex="0"
 				onclick={() => onopen(brief.id)}
 				onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && onopen(brief.id)}
-				class="group flex cursor-pointer flex-col gap-3 rounded-2xl border border-border bg-surface p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+				class="group flex min-w-0 cursor-pointer flex-col gap-3 rounded-2xl border border-border bg-surface p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
 			>
 				<div class="flex items-start justify-between gap-2">
 					<div class="flex items-center gap-2 overflow-hidden">

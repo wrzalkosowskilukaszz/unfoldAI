@@ -48,8 +48,8 @@ export function modal(node: HTMLElement, onClose: () => void) {
 		}
 	}
 
-	node.addEventListener('keydown', onKeydown);
-	// Escape should work even when focus has drifted outside the node.
+	// On document, not the node: it still catches keys inside the dialog, and
+	// Escape keeps working when focus has drifted outside it.
 	document.addEventListener('keydown', onKeydown);
 
 	// Stop the page behind scrolling under the dialog.
@@ -58,7 +58,6 @@ export function modal(node: HTMLElement, onClose: () => void) {
 
 	return {
 		destroy() {
-			node.removeEventListener('keydown', onKeydown);
 			document.removeEventListener('keydown', onKeydown);
 			document.body.style.overflow = prevOverflow;
 			previouslyFocused?.focus?.();

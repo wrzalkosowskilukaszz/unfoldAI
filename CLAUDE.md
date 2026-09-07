@@ -50,6 +50,7 @@ brief; Surveyvor interrogates it.*
 
 Live at **https://surveyvor.app** (Vercel project `surveyvor`, auto-deploys from
 `main`). Restore point for the pre-rename app: `git checkout finished-unfold`.
+Restore point for the password-gated beta: `git checkout gated-beta`.
 
 ---
 
@@ -171,8 +172,18 @@ generous whitespace; motion should feel physical, never linear easing.
 
 ## Testing
 
-`npm test` — Vitest, jsdom, ~41 tests. Run it before pushing; it has already
+`npm test` — Vitest, jsdom, ~63 tests. Run it before pushing; it has already
 caught a real auth bug and two silent template-blindness bugs.
+
+**Look at the real page, not the type-checker.** The in-app browser pane never
+repaints after a scroll, so use `scripts/shot.mjs` (headless Chrome over the
+DevTools protocol) for anything below the fold, every phone-width check, and
+for what "Save as PDF" actually prints — a blank single-page PDF shipped for
+weeks because nobody printed one. It seeds two test briefs from
+`scripts/seed-briefs.js`, so no AI call is needed to see the survey or export.
+
+The dev server **dies when a route file is deleted** (SvelteKit's type
+writer races the watcher). Restart it; it is not your change.
 
 Two environment traps are handled in `tests/setup.ts` and `vitest.config.ts`,
 and will bite again if you touch them:
@@ -186,7 +197,9 @@ and will bite again if you touch them:
   discard whatever a test had set.
 
 Test the store, the guards and anything that can fail silently. Do not chase a
-coverage number.
+coverage number. Pure helpers that the API routes share live in
+`src/lib/server/model.ts`, apart from the SDK client in `anthropic.ts`, so
+they can be tested without constructing the client.
 
 ---
 
@@ -198,6 +211,11 @@ coverage number.
   substitute. See `context/deployment.md`.
 - **`SENTRY_DSN`** — optional. Errors already get a reference id and structured
   logs without it.
+- **`DAILY_AI_CALL_LIMIT`** — optional, default 1000. The whole-service ceiling
+  on AI calls per day, checked in `hooks.server.ts` after the per-address
+  limit. It is what makes an open (no password) deployment survivable: the
+  per-address limit stops one person, this stops many. Keep it under the hard
+  cap in the Anthropic Console.
 
 ---
 
@@ -209,15 +227,27 @@ the moment text first leaves the device — deliberately not an arrival popup.
 Zero requests may fire before acknowledgement; declining cancels the action and
 does **not** record consent. If you add an AI call site, add the guard.
 
-**Public routes.** `PUBLIC_PATHS` in `hooks.server.ts` is the allowlist that
-escapes the beta password: `/unlock`, `/privacy`, `/terms`, `/sitemap.xml`. A
-privacy policy behind a login is useless to a visitor, a regulator and App Store
-review. Everything else stays gated.
+**The gate is optional.** `APP_PASSWORD` set means every route except
+`PUBLIC_PATHS` in `hooks.server.ts` (`/unlock`, `/privacy`, `/terms`,
+`/sitemap.xml`) needs the cookie. Unset means the app is public and the only
+things standing between a stranger and the Anthropic bill are the per-address
+limit and `DAILY_AI_CALL_LIMIT`. Both paths are live code; do not remove either.
 
 **Page metadata.** Use `Seo.svelte` — it supplies title, description, canonical,
-Open Graph and Twitter tags together. The gated app passes `index={false}`; the
-public pages do not. Note `src/routes/+page.ts` sets `ssr = false`, so the app
-route emits no server-side head tags; the public pages do render theirs.
+Open Graph and Twitter tags together. The root route renders its head on the
+server and **nothing else** — the body is built from localStorage, which the
+server cannot see — so link previews on LinkedIn, Slack and iMessage get a real
+title and card without a hydration mismatch. `ready` in `+page.svelte` is that
+gate; it flips via `afterNavigate`, one microtask after the router starts, and
+it also guards every `pushState`/`replaceState`. Calling those from an effect
+during mount throws in dev and the throw tears the page down.
+
+**The URL follows the store, not the call site.** An effect in `+page.svelte`
+rewrites `?s=` whenever `briefStore.step` changes while a brief is open. So a
+component can call `briefStore.goToStep(briefStore.surveyStep)` and the URL,
+refresh and Back all stay right. Never hard-code a step number — the survey is
+step 6 on the default template and step 7 on every specialist one, and that
+exact bug shipped.
 
 ---
 
@@ -228,6 +258,11 @@ route emits no server-side head tags; the public pages do render theirs.
   This silently broke Duplicate once.
 - `isStepComplete()` is **content-based, not positional**. An empty brief must
   never show completion checkmarks.
+- **Print CSS is a separate layout.** `#printable-brief` is in flow with
+  `overflow: visible`, and `.rise` has no animation under `@media print`.
+  Absolutely positioning it with `inset: 0` clipped every brief to one page;
+  the entry animation printed as a blank one. Print a long brief after touching
+  either.
 - The localStorage migration chain
   (`surveyvor-briefs-v1` ← `unfold-ai-briefs-v1` ← `briefflow-ai-briefs-v1`
   ← `briefflow-ai-state-v1`) must be preserved. Existing users lose everything
@@ -255,10 +290,13 @@ oversight. Don't "upgrade" it to Opus.
 
 - `.env` is gitignored. **Scan before every push:**
   `git grep -I -E "sk-ant-|APP_PASSWORD=[^[:space:]]"`
-- `APP_PASSWORD` unset = the app is open to anyone who finds the URL, spending
-  the owner's credits. It must be set in the host env **before** the site is
-  public, and **together with** `ANTHROPIC_API_KEY` — never the key alone.
-- Set a hard spend cap in the Anthropic Console.
+- `APP_PASSWORD` unset = the app is open to anyone who finds the URL. That is
+  now the intended public state, and it is only safe **with** Upstash Redis
+  provisioned (so the per-address limit is per person, not per instance) and
+  a hard spend cap in the Anthropic Console. `DAILY_AI_CALL_LIMIT` is the
+  friendly ceiling under that cap.
+- The API validates every field it interpolates into a prompt and caps the
+  total length of all of them, not just the sections. Keep it that way.
 - Never paste keys or tokens into chat, logs, commit messages or issues.
 
 ---

@@ -1,6 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
+import { textOf } from '$lib/server/model';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
 import { projectLens, roleFraming } from '$lib/server/role';
@@ -51,11 +52,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	logUsage('refine-section', message.usage);
 
-	const refined = message.content
-		.filter((block) => block.type === 'text')
-		.map((block) => block.text)
-		.join('\n')
-		.trim();
+	const refined = textOf(message);
 
 	if (!refined) {
 		throw error(502, 'Claude returned an empty response. Please try again.');

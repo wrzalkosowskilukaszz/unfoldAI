@@ -1,6 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
+import { parseModelJson, textOf } from '$lib/server/model';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
 import type { SectionKey } from '$lib/types';
@@ -24,12 +25,6 @@ Rules:
 {"projectName":"...","clientName":"...","objectives":"...","audience":"...","deliverables":"...","constraints":"...","unplaced":"..."}`;
 
 const KEYS: SectionKey[] = ['objectives', 'audience', 'deliverables', 'constraints'];
-
-function stripCodeFences(text: string): string {
-	const trimmed = text.trim();
-	const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
-	return fenced ? fenced[1] : trimmed;
-}
 
 export const POST: RequestHandler = async ({ request }) => {
 	let body: { text?: string };
@@ -71,17 +66,9 @@ export const POST: RequestHandler = async ({ request }) => {
 		throw error(502, 'That document was too dense to sort in one pass. Try splitting it up.');
 	}
 
-	const raw = message.content
-		.filter((b) => b.type === 'text')
-		.map((b) => b.text)
-		.join('\n')
-		.trim();
-
-	let parsed: Record<string, unknown>;
-	try {
-		parsed = JSON.parse(stripCodeFences(raw));
-	} catch {
-		console.error('Failed to parse document-sort JSON:', raw.slice(0, 400));
+	const parsed = parseModelJson(textOf(message)) as Record<string, unknown> | null;
+	if (!parsed || typeof parsed !== 'object') {
+		console.error('Failed to parse document-sort JSON');
 		throw error(502, "The AI's response couldn't be read. Please try again.");
 	}
 

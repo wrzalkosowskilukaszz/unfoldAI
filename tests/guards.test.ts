@@ -176,6 +176,92 @@ describe('rate limiting', () => {
 	});
 });
 
+describe('the whole service has a daily ceiling', () => {
+	beforeEach(async () => {
+		delete env.UPSTASH_REDIS_REST_URL;
+		delete env.UPSTASH_REDIS_REST_TOKEN;
+		delete env.DAILY_AI_CALL_LIMIT;
+		vi.resetModules();
+		(await import('$lib/server/rateLimit')).__resetRateLimiter();
+	});
+
+	it('stops every caller once the day\'s budget is spent, and says when to retry', async () => {
+		env.DAILY_AI_CALL_LIMIT = '5';
+		vi.resetModules();
+		const { checkDailyCeiling } = await import('$lib/server/rateLimit');
+		let allowed = 0;
+		let blocked: Awaited<ReturnType<typeof checkDailyCeiling>> | null = null;
+		for (let i = 0; i < 20; i++) {
+			const r = await checkDailyCeiling();
+			if (r.ok) allowed++;
+			else { blocked = r; break; }
+		}
+		expect(allowed).toBe(5);
+		expect(blocked, 'the sixth call of the day is refused').toBeTruthy();
+		// A day, not ten minutes: the window must actually be the long one.
+		expect(blocked!.retryAfterSeconds).toBeGreaterThan(60 * 60);
+	});
+
+	it('ignores a nonsense override and keeps a sane default', async () => {
+		env.DAILY_AI_CALL_LIMIT = 'lots';
+		vi.resetModules();
+		const { checkDailyCeiling } = await import('$lib/server/rateLimit');
+		for (let i = 0; i < 50; i++) expect((await checkDailyCeiling()).ok).toBe(true);
+	});
+
+	it('keeps the per-address window short even though the ceiling is a day', async () => {
+		const { checkRateLimit } = await import('$lib/server/rateLimit');
+		let blocked: Awaited<ReturnType<typeof checkRateLimit>> | null = null;
+		for (let i = 0; i < 60; i++) {
+			const r = await checkRateLimit('someone');
+			if (!r.ok) { blocked = r; break; }
+		}
+		expect(blocked!.retryAfterSeconds).toBeLessThanOrEqual(10 * 60);
+	});
+});
+
+describe('model output is read defensively', () => {
+
+	it('accepts raw JSON and fenced JSON alike, and nothing else', async () => {
+		const { parseModelJson } = await import('$lib/server/model');
+		expect(parseModelJson('{"a":1}')).toEqual({ a: 1 });
+		expect(parseModelJson('```json\n{"a":1}\n```')).toEqual({ a: 1 });
+		expect(parseModelJson('```\n{"a":1}\n```')).toEqual({ a: 1 });
+		expect(parseModelJson('Sure! Here is the JSON: {"a":1}'), 'prose is not JSON').toBeNull();
+		expect(parseModelJson('')).toBeNull();
+	});
+
+	it('keeps only the text blocks, so thinking never leaks into a response', async () => {
+		const { textOf } = await import('$lib/server/model');
+		const text = textOf({
+			content: [
+				{ type: 'thinking', thinking: 'private', signature: 's' },
+				{ type: 'text', text: ' hello ', citations: null },
+				{ type: 'text', text: 'world', citations: null }
+			]
+		} as never);
+		expect(text).toBe('hello \nworld');
+		expect(text).not.toContain('private');
+	});
+});
+
+describe('the browser reads API failures as the message the server wrote', () => {
+	it('surfaces the server message on a non-2xx, and the body on success', async () => {
+		const { postJson } = await import('$lib/api');
+		const fetchSpy = vi.spyOn(globalThis, 'fetch');
+
+		fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({ message: 'Too many requests' }), { status: 429 }));
+		await expect(postJson('/api/x', {})).rejects.toThrow('Too many requests');
+
+		fetchSpy.mockResolvedValueOnce(new Response('<html>gateway</html>', { status: 502 }));
+		await expect(postJson('/api/x', {}), 'a non-JSON error still has a readable message').rejects.toThrow('Request failed (502)');
+
+		fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({ refined: 'ok' }), { status: 200 }));
+		await expect(postJson('/api/x', {})).resolves.toEqual({ refined: 'ok' });
+		fetchSpy.mockRestore();
+	});
+});
+
 describe('saving cannot fail silently', () => {
 	beforeEach(() => {
 		testStorage.clear();

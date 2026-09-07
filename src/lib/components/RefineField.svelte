@@ -4,6 +4,7 @@
 	import DOMPurify from 'isomorphic-dompurify';
 	import { briefStore } from '$lib/stores/brief.svelte';
 	import { aiConsent } from '$lib/stores/aiConsent.svelte';
+	import { postJson } from '$lib/api';
 	import type { HelpAnswer, SectionKey } from '$lib/types';
 	import QuestionFlow from '$lib/components/QuestionFlow.svelte';
 
@@ -29,28 +30,13 @@
 
 		briefStore.setStatus(sectionKey, 'loading');
 		try {
-			const res = await fetch('/api/refine-section', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					sectionName: sectionKey,
-					rawInput: briefStore.sections[sectionKey]?.raw ?? '',
-					role: briefStore.meta.role,
-					projectType: briefStore.meta.projectType,
-					regenerate
-				})
+			const data = await postJson<{ refined: string }>('/api/refine-section', {
+				sectionName: sectionKey,
+				rawInput: briefStore.sections[sectionKey]?.raw ?? '',
+				role: briefStore.meta.role,
+				projectType: briefStore.meta.projectType,
+				regenerate
 			});
-			if (!res.ok) {
-				let message = `Request failed (${res.status})`;
-				try {
-					const data = await res.json();
-					if (data?.message) message = data.message;
-				} catch {
-					// non-JSON error body — keep the generic message
-				}
-				throw new Error(message);
-			}
-			const data = await res.json();
 			briefStore.setRefined(sectionKey, data.refined);
 		} catch (err) {
 			briefStore.setStatus(
@@ -124,7 +110,7 @@
 				>
 					{#if section.status === 'loading'}
 						<Loader2 size={14} class="animate-spin" />
-						<span>Status: Refining with AI...</span>
+						<span>Refining...</span>
 					{:else}
 						<Sparkles size={14} />
 						<span>Improve with AI</span>
@@ -144,7 +130,7 @@
 			value={section.raw}
 			oninput={(e) => briefStore.setRaw(sectionKey, e.currentTarget.value)}
 			disabled={section.status === 'loading'}
-			class="w-full resize-y rounded-xl border border-border bg-surface-alt/60 p-3 text-sm text-ink placeholder-ink-faint outline-none focus:border-accent disabled:opacity-60"
+			class="min-h-40 w-full resize-y rounded-xl lg:min-h-56 border border-border bg-surface-alt/60 p-3 text-sm text-ink placeholder-ink-faint outline-none focus:border-accent disabled:opacity-60"
 		></textarea>
 
 		{#if section.status === 'error' && section.error}
@@ -166,18 +152,18 @@
 		<div class="grid gap-3 md:grid-cols-2">
 			<div class="rounded-2xl border border-border bg-surface-alt/50 p-4">
 				<p class="mb-2.5 text-[0.72rem] font-semibold tracking-wide text-ink-faint uppercase">
-					Original Raw Input
+					Your notes
 				</p>
 				<p class="text-sm leading-relaxed whitespace-pre-wrap text-ink-soft">{section.raw}</p>
 			</div>
 			<div class="rounded-2xl border border-accent/30 bg-surface-alt/50 p-4">
 				<p class="mb-2.5 text-[0.72rem] font-semibold tracking-wide text-accent uppercase">
-					AI Structured Proposal
+					Suggested structure
 				</p>
 				{#if section.status === 'loading'}
 					<div class="flex items-center gap-2 text-sm text-ink-soft">
 						<Loader2 size={14} class="animate-spin" />
-						Status: Refining with AI...
+						Refining...
 					</div>
 				{:else if editing}
 					<textarea

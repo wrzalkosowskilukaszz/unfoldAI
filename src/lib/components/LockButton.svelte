@@ -12,8 +12,6 @@
 	 * destructive even though it isn't: briefs live in this browser's storage and
 	 * locking never touches them. Saying so is the whole point of the dialog.
 	 */
-	let { compact = false }: { compact?: boolean } = $props();
-
 	let confirming = $state(false);
 
 	let unexported = $derived(
@@ -25,14 +23,10 @@
 	type="button"
 	onclick={() => (confirming = true)}
 	aria-label="Lock this browser"
-	class="flex items-center gap-1.5 rounded-full border border-border text-ink-soft transition-colors hover:border-accent/40 hover:text-accent {compact
-		? 'h-11 w-11 justify-center'
-		: 'h-11 px-3 lg:h-9'}"
+	class="flex h-11 items-center gap-1.5 rounded-full border border-border px-3 text-ink-soft transition-colors hover:border-accent/40 hover:text-accent lg:h-9"
 >
 	<LogOut size={15} />
-	{#if !compact}
-		<span class="hidden text-xs font-medium sm:inline">Lock</span>
-	{/if}
+	<span class="hidden text-xs font-medium sm:inline">Lock</span>
 </button>
 
 {#if confirming}

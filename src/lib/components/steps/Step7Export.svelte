@@ -17,6 +17,7 @@
 	import { analytics } from '$lib/analytics';
 	import SurveySummary from '$lib/components/SurveySummary.svelte';
 	import { aiConsent } from '$lib/stores/aiConsent.svelte';
+	import { postJson } from '$lib/api';
 	import { compileBriefBody, compileBriefMarkdown } from '$lib/markdown';
 	import { SECTION_LABELS } from '$lib/types';
 
@@ -79,10 +80,11 @@
 	);
 
 	async function copyToClipboard() {
-		briefStore.markExported(briefStore.activeBriefId!);
-		analytics.briefExported('copy', hasOpenItems);
 		try {
 			await navigator.clipboard.writeText(fullMarkdown);
+			// Only a copy that actually happened counts as a backup.
+			briefStore.markExported(briefStore.activeBriefId!);
+			analytics.briefExported('copy', hasOpenItems);
 			copied = true;
 			copyError = false;
 			setTimeout(() => (copied = false), 2000);
@@ -129,32 +131,17 @@
 		polishState = 'loading';
 		polishError = null;
 		try {
-			const res = await fetch('/api/compile-brief', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					meta: briefStore.meta,
-					sections: Object.fromEntries(
-						briefStore.sectionKeys.map((k) => [k, briefStore.sections[k]?.raw ?? ''])
-					),
-					decisions: decisions.map((d) => ({
-						dimension: d.dimension,
-						title: d.title,
-						resolution: d.resolution
-					}))
-				})
+			const data = await postJson<{ polished: string }>('/api/compile-brief', {
+				meta: briefStore.meta,
+				sections: Object.fromEntries(
+					briefStore.sectionKeys.map((k) => [k, briefStore.sections[k]?.raw ?? ''])
+				),
+				decisions: decisions.map((d) => ({
+					dimension: d.dimension,
+					title: d.title,
+					resolution: d.resolution
+				}))
 			});
-			if (!res.ok) {
-				let message = `Request failed (${res.status})`;
-				try {
-					const data = await res.json();
-					if (data?.message) message = data.message;
-				} catch {
-					// non-JSON error body — keep the generic message
-				}
-				throw new Error(message);
-			}
-			const data = await res.json();
 			briefStore.setPolishedBrief(data.polished);
 			view = 'polished';
 			polishState = 'idle';
@@ -289,7 +276,7 @@
 			</p>
 			<button
 				type="button"
-				onclick={() => briefStore.goToStep(6)}
+				onclick={() => briefStore.goToStep(briefStore.surveyStep)}
 				class="min-h-11 shrink-0 rounded-full border border-border bg-surface px-4 text-xs font-semibold text-ink lg:min-h-0 lg:py-2"
 			>
 				Review it first
@@ -306,7 +293,8 @@
 					Still open
 				</h3>
 
-				<label class="flex cursor-pointer items-center gap-2 text-xs text-ink-soft">
+				<!-- min-h-11: the box is 13px; the label is the real touch target. -->
+				<label class="flex min-h-11 cursor-pointer items-center gap-2 text-xs text-ink-soft lg:min-h-0">
 					<input type="checkbox" bind:checked={includeOpen} class="accent-accent" />
 					Include in the exported brief
 				</label>
@@ -333,7 +321,7 @@
 			{#if openItems.unresolved.length > 0}
 				<button
 					type="button"
-					onclick={() => briefStore.goToStep(6)}
+					onclick={() => briefStore.goToStep(briefStore.surveyStep)}
 					class="mt-3 text-xs font-semibold text-accent hover:underline"
 				>
 					Go back and settle these →

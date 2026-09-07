@@ -1,6 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
+import { textOf } from '$lib/server/model';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
 import { projectLens, roleFraming } from '$lib/server/role';
@@ -24,12 +25,8 @@ interface RequestBody {
 		briefDate?: string;
 		launchDate?: string;
 	};
-	sections?: {
-		objectives?: string;
-		audience?: string;
-		deliverables?: string;
-		constraints?: string;
-	};
+	/** Keyed by section id; the set depends on the brief's template. */
+	sections?: Record<string, string>;
 	decisions?: { dimension: string; title: string; resolution?: string }[];
 }
 
@@ -45,12 +42,12 @@ export const POST: RequestHandler = async ({ request }) => {
 	const sections = body.sections ?? {};
 	const decisions = body.decisions ?? [];
 
-	const hasContent = Object.values(sections).some((value) => value && value.trim());
+	const hasContent = Object.values(sections).some((v) => typeof v === 'string' && v.trim());
 	if (!hasContent) {
 		throw error(400, 'No section content to compile yet.');
 	}
 
-	if (tooLong(...Object.values(sections))) {
+	if (tooLong(...Object.values(sections), ...decisions.flatMap((d) => [d.title, d.resolution]))) {
 		throw error(413, 'That is more text than this tool can process at once. Please trim it down.');
 	}
 
@@ -111,11 +108,7 @@ Write the final, polished creative brief now.`;
 
 	logUsage('compile-brief', message.usage);
 
-	const polished = message.content
-		.filter((block) => block.type === 'text')
-		.map((block) => block.text)
-		.join('\n')
-		.trim();
+	const polished = textOf(message);
 
 	if (!polished) {
 		throw error(502, 'Claude returned an empty response. Please try again.');

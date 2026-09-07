@@ -11,6 +11,7 @@
 	} from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
 	import { aiConsent } from '$lib/stores/aiConsent.svelte';
+	import { postJson } from '$lib/api';
 	import {
 		MAX_HELP_QUESTIONS,
 		type HelpAnswer,
@@ -69,7 +70,12 @@
 
 	async function fetchNext() {
 		// Text is about to leave the device; make sure the person has been told.
-		if (!(await aiConsent.ensure())) return;
+		// Declining ends the interview: this component opens on "Thinking…", so
+		// returning here would leave a spinner that never stops.
+		if (!(await aiConsent.ensure())) {
+			oncancel();
+			return;
+		}
 
 		loading = true;
 		errorMsg = null;
@@ -79,10 +85,9 @@
 				if (key !== sectionKey) otherSections[key] = briefStore.sections[key]?.raw ?? '';
 			}
 
-			const res = await fetch('/api/next-question', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
+			const data = await postJson<{ done: boolean; question: HelpQuestion | null }>(
+				'/api/next-question',
+				{
 					sectionName: sectionKey,
 					sectionRaw: briefStore.sections[sectionKey]?.raw ?? '',
 					otherSections,
@@ -90,21 +95,8 @@
 					learnedContext: briefStore.helpHistory,
 					role: briefStore.meta.role,
 					projectType: briefStore.meta.projectType
-				})
-			});
-
-			if (!res.ok) {
-				let message = `Request failed (${res.status})`;
-				try {
-					const data = await res.json();
-					if (data?.message) message = data.message;
-				} catch {
-					// non-JSON error body — keep the generic message
 				}
-				throw new Error(message);
-			}
-
-			const data = await res.json();
+			);
 			if (dead) return;
 			if (data.done || !data.question) {
 				finish();

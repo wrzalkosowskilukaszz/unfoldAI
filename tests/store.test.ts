@@ -239,6 +239,15 @@ describe('duplicate and import keep full fidelity', () => {
 		expect(store.findings.find((f) => f.id === 'a')?.resolution, 'client decisions survive').toBe('Launch moves');
 	});
 
+	it('clamps a step that lies past the end of the brief\'s own template', async () => {
+		const store = await freshStore();
+		// A default-template brief has seven steps; a hand-edited file says 12.
+		const id = store.importBriefFromJSON(JSON.stringify(briefFixture({ step: 12 })));
+		expect(store.briefs[id].step, 'never past the last step').toBe(7);
+		const id2 = store.importBriefFromJSON(JSON.stringify(briefFixture({ step: 'three' })));
+		expect(store.briefs[id2].step, 'garbage lands on step 1').toBe(1);
+	});
+
 	it('rejects a file that is not a brief', async () => {
 		const store = await freshStore();
 		expect(() => store.importBriefFromJSON('"just a string"')).toThrow();

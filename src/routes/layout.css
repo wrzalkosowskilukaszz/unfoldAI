@@ -382,13 +382,23 @@ summary:focus-visible,
 		visibility: visible;
 	}
 
+	/*
+	 * In flow, not absolutely positioned: `inset: 0` pinned the sheet to one
+	 * page height and, with its own overflow-hidden, cut a long brief off after
+	 * page one. The entry animation is also disabled — a print snapshot taken
+	 * at its first frame is a blank page.
+	 */
 	#printable-brief {
-		position: absolute;
-		inset: 0;
-		padding: 2rem;
+		position: static;
+		overflow: visible !important;
+		padding: 0;
 		box-shadow: none !important;
 		border: none !important;
 		background: white !important;
+	}
+
+	.rise {
+		animation: none !important;
 	}
 
 	#printable-brief,

@@ -28,8 +28,8 @@
 		than as a banner — it is a standing fact, not an alarm.
 	-->
 	<p class="flex items-center gap-1.5 text-[0.72rem] font-medium text-ink-faint">
-		<HardDriveDownload size={12} />
-		Saved here only — <span class="text-ink-soft">not exported yet</span>
+		<HardDriveDownload size={12} class="shrink-0" />
+		<span>Saved here only — <span class="text-ink-soft">not exported yet</span></span>
 	</p>
 {:else if briefStore.saveState === 'error'}
 	<p

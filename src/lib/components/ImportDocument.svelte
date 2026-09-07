@@ -11,7 +11,9 @@
 	} from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
 	import { aiConsent } from '$lib/stores/aiConsent.svelte';
-	import { SECTION_LABELS, SECTION_ORDER, type SectionKey } from '$lib/types';
+	import { analytics } from '$lib/analytics';
+	import { postJson } from '$lib/api';
+	import { CORE_SECTIONS, SECTION_LABELS, type SectionKey } from '$lib/types';
 
 	let { oncancel, onopen }: { oncancel: () => void; onopen: (id: string) => void } = $props();
 
@@ -35,7 +37,7 @@
 	let unplaced = $state('');
 	let editing = $state<SectionKey | null>(null);
 
-	let filledCount = $derived(SECTION_ORDER.filter((k) => mapped[k].trim()).length);
+	let filledCount = $derived(CORE_SECTIONS.filter((k) => mapped[k].trim()).length);
 
 	async function readFile(file: File): Promise<string> {
 		const name = file.name.toLowerCase();
@@ -88,25 +90,19 @@
 
 	async function sortDocument(text: string) {
 		// Text is about to leave the device; make sure the person has been told.
-		if (!(await aiConsent.ensure())) return;
+		// The caller already switched to "Reading…", so declining has to switch back.
+		if (!(await aiConsent.ensure())) {
+			stage = 'input';
+			return;
+		}
 
 		try {
-			const res = await fetch('/api/parse-document', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ text })
-			});
-			if (!res.ok) {
-				let message = `Request failed (${res.status})`;
-				try {
-					const data = await res.json();
-					if (data?.message) message = data.message;
-				} catch {
-					// non-JSON body — keep the generic message
-				}
-				throw new Error(message);
-			}
-			const data = await res.json();
+			const data = await postJson<{
+				sections: Record<SectionKey, string>;
+				projectName?: string;
+				clientName?: string;
+				unplaced?: string;
+			}>('/api/parse-document', { text });
 			mapped = data.sections;
 			projectName = data.projectName || '';
 			clientName = data.clientName || '';
@@ -125,11 +121,12 @@
 			projectName: projectName || fileName.replace(/\.[^.]+$/, ''),
 			clientName
 		});
-		for (const key of SECTION_ORDER) {
+		for (const key of CORE_SECTIONS) {
 			if (mapped[key].trim()) briefStore.setRaw(key, mapped[key].trim());
 		}
 		// They already have a brief; what they came for is the diagnosis.
-		briefStore.goToStep(6);
+		briefStore.goToStep(briefStore.surveyStep);
+		analytics.briefCreated('import');
 		onopen(id);
 	}
 </script>
@@ -244,7 +241,7 @@
 				</div>
 			{/if}
 
-			{#each SECTION_ORDER as key}
+			{#each CORE_SECTIONS as key}
 				<div class="rounded-2xl border border-border bg-surface p-4">
 					<div class="flex items-center justify-between gap-3">
 						<h3 class="text-sm font-semibold text-ink">{SECTION_LABELS[key]}</h3>

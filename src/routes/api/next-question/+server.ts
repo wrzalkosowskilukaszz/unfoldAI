@@ -1,6 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
+import { parseModelJson, textOf } from '$lib/server/model';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
 import { projectLens, roleFraming } from '$lib/server/role';
@@ -33,12 +34,6 @@ interface RequestBody {
 	projectType?: unknown;
 }
 
-function stripCodeFences(text: string): string {
-	const trimmed = text.trim();
-	const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
-	return fenced ? fenced[1] : trimmed;
-}
-
 function isValidQuestion(value: unknown): value is HelpQuestion {
 	if (!value || typeof value !== 'object') return false;
 	const q = value as Record<string, unknown>;
@@ -65,7 +60,14 @@ export const POST: RequestHandler = async ({ request }) => {
 		throw error(400, `sectionName must be one of: ${[...VALID_SECTIONS].join(', ')}`);
 	}
 
-	if (tooLong(sectionRaw, ...Object.values(otherSections ?? {}))) {
+	if (
+		tooLong(
+			sectionRaw,
+			...Object.values(otherSections ?? {}),
+			...answered.flatMap((a) => [a.question, a.answer]),
+			...learnedContext.flatMap((e) => [e.question, e.answer])
+		)
+	) {
 		throw error(413, 'That is more text than this tool can process at once. Please trim it down.');
 	}
 
@@ -131,17 +133,9 @@ Ask the single most useful next question, or finish if you have enough.`;
 
 	logUsage('next-question', message.usage);
 
-	const rawText = message.content
-		.filter((block) => block.type === 'text')
-		.map((block) => block.text)
-		.join('\n')
-		.trim();
-
-	let parsed: unknown;
-	try {
-		parsed = JSON.parse(stripCodeFences(rawText));
-	} catch {
-		console.error('Failed to parse question JSON:', rawText);
+	const parsed = parseModelJson(textOf(message));
+	if (parsed === null) {
+		console.error('Failed to parse question JSON');
 		throw error(502, "The AI's response couldn't be read. Please try again.");
 	}
 

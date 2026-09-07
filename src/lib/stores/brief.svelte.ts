@@ -1,7 +1,6 @@
 import { browser } from '$app/environment';
 import {
 	SECTION_DEFS,
-	STEP_LABELS,
 	sectionsFor,
 	stepLabelsFor,
 	surveyStepFor,
@@ -22,9 +21,6 @@ const LEGACY_UNFOLD_KEY = 'unfold-ai-briefs-v1';
 const LEGACY_BRIEFS_KEY = 'briefflow-ai-briefs-v1';
 /** Original single-brief store, from before the My Briefs gallery existed. */
 const LEGACY_SINGLE_KEY = 'briefflow-ai-state-v1';
-/** Derived from the labels so the two can never drift apart. */
-/** Default only. A brief's real length depends on its template — use briefStore.totalSteps. */
-const TOTAL_STEPS = STEP_LABELS.length;
 const DEFAULT_NAME = 'Untitled Brief';
 
 function emptySection(): SectionState {
@@ -91,6 +87,11 @@ function normalizeBrief(brief: SavedBrief): SavedBrief {
 	for (const key of Object.keys(SECTION_DEFS)) {
 		if (!brief.sections[key]) brief.sections[key] = emptySection();
 	}
+	// A hand-edited or foreign file can carry a step past the end of its own
+	// template; clamp it so the gallery never shows a 130% progress bar.
+	const total = totalStepsFor(brief.meta?.projectType);
+	if (typeof brief.step !== 'number' || !Number.isFinite(brief.step)) brief.step = 1;
+	brief.step = Math.min(Math.max(Math.floor(brief.step), 1), total);
 	return brief;
 }
 
@@ -385,14 +386,6 @@ class BriefStore {
 		this.persist();
 	}
 
-	next() {
-		this.goToStep(this.step + 1);
-	}
-
-	back() {
-		this.goToStep(this.step - 1);
-	}
-
 	updateMeta(patch: Partial<ProjectMeta>) {
 		Object.assign(this.active.meta, patch);
 		if (!this.active.nameManuallySet && patch.projectName?.trim()) {
@@ -533,4 +526,3 @@ class BriefStore {
 }
 
 export const briefStore = new BriefStore();
-export { TOTAL_STEPS };

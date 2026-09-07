@@ -254,6 +254,13 @@ exact bug shipped.
 ## Svelte 5 gotchas
 
 - Runes only: `$state`, `$derived`, `$props`, `$effect`.
+- **Never import jsdom, or anything that wraps it, into a server-rendered
+  route.** `isomorphic-dompurify` did (it loads jsdom on the server), and the
+  moment the root page rendered on the server, production answered 500:
+  Vercel's Node cannot `require()` one of jsdom's ESM dependencies. Plain
+  `dompurify` is safe to import anywhere; it is only ever *called* in the
+  browser. If `/` starts 500ing after a dependency change, grep
+  `.svelte-kit/output/server` for `jsdom` first.
 - **`structuredClone()` throws on a `$state` proxy.** Use `$state.snapshot()`.
   This silently broke Duplicate once.
 - `isStepComplete()` is **content-based, not positional**. An empty brief must

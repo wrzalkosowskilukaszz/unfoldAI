@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Sparkles, Loader2, Check, Pencil, RefreshCw, AlertTriangle, MessagesSquare } from '@lucide/svelte';
 	import { marked } from 'marked';
-	import DOMPurify from 'isomorphic-dompurify';
+	import DOMPurify from 'dompurify';
 	import { briefStore } from '$lib/stores/brief.svelte';
 	import { aiConsent } from '$lib/stores/aiConsent.svelte';
 	import { postJson } from '$lib/api';

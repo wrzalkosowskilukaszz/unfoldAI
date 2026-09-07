@@ -15,6 +15,7 @@
 	import Step7Export from '$lib/components/steps/Step7Export.svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
 	import Seo from '$lib/components/Seo.svelte';
+	import Intro from '$lib/components/Intro.svelte';
 	import { page } from '$app/state';
 	import { afterNavigate } from '$app/navigation';
 	import { untrack } from 'svelte';
@@ -125,6 +126,11 @@
 	title="Surveyvor — Survey the project before you build it"
 	description="An AI briefing tool for creative teams. Surveyvor uncovers the assumptions, contradictions and unresolved decisions hiding in a brief — before they become expensive problems."
 />
+
+{#if ready}
+	<!-- Once per session. Renders over the page, never instead of it. -->
+	<Intro />
+{/if}
 
 {#if !ready}
 	<!-- Server render and the first client frame: head tags only. -->
@@ -260,7 +266,7 @@
 			<!-- Desktop: the full rail. -->
 			<div class="hidden h-full flex-col px-6 py-7 lg:flex">
 				<div class="flex items-center justify-between">
-					<Logo size={28} />
+					<Logo size={26} />
 					<button
 						type="button"
 						onclick={() => themeStore.toggle()}

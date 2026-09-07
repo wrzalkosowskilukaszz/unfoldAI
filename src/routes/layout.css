@@ -192,6 +192,12 @@ summary:focus-visible,
 	outline-offset: 2px;
 }
 
+/* While the opening animation runs, the mark exists only in the overlay; the
+   header's copy is hidden until the overlay flies into its place. */
+html.intro-running [data-logo-home] {
+	visibility: hidden;
+}
+
 /* Clears the home indicator on notched phones — and in a packaged app shell. */
 .safe-bottom {
 	padding-bottom: env(safe-area-inset-bottom, 0px);

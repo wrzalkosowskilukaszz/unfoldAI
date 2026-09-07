@@ -11,6 +11,16 @@
 		<link rel="apple-touch-icon" href="%sveltekit.assets%/apple-touch-icon.png" />
 		<link rel="manifest" href="%sveltekit.assets%/site.webmanifest" />
 		<meta name="theme-color" content="#5f4fe8" />
+		<!-- Theme before first paint. The store applies the same rule after
+		     hydration; without this a dark-mode visitor gets one light frame.
+		     Nonce-signed so the CSP allows it. -->
+		<script nonce="%sveltekit.nonce%">
+			try {
+				var t = localStorage.getItem('surveyvor-theme') || localStorage.getItem('unfold-ai-theme');
+				if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+				document.documentElement.dataset.theme = t;
+			} catch (e) {}
+		</script>
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
 		<link

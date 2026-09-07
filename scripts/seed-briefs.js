@@ -31,5 +31,7 @@ const b2 = { id: 'b-blank', name: 'Untitled Brief', nameManuallySet: false, crea
 localStorage.setItem('surveyvor-briefs-v1', JSON.stringify({ briefs: { 'b-zorka': b1, 'b-blank': b2 }, activeBriefId: 'b-zorka' }));
 localStorage.setItem('surveyvor-ai-notice-seen-v1', '1');
 localStorage.setItem('surveyvor-theme', 'light');
+// The opening animation plays once per session; screenshots want the page at rest.
+sessionStorage.setItem('surveyvor-intro-seen', '1');
 return 'seeded';
 })()

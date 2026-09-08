@@ -235,7 +235,11 @@ they can be tested without constructing the client.
 `aiConsent.ensure()` (`src/lib/stores/aiConsent.svelte.ts`). It shows once, at
 the moment text first leaves the device — deliberately not an arrival popup.
 Zero requests may fire before acknowledgement; declining cancels the action and
-does **not** record consent. If you add an AI call site, add the guard.
+does **not** record consent. If you add an AI call site, add the guard **and
+add it to the list in `/privacy`** — the cascade (`/api/reconsider`) is the one
+call that fires without its own button, and the policy names it. Nothing may
+ever send while someone is typing. Server logs carry counts and shapes only:
+`describeUnreadable` reports length and shape, never a character of a reply.
 
 **The gate is optional.** `APP_PASSWORD` set means every route except
 `PUBLIC_PATHS` in `hooks.server.ts` (`/unlock`, `/privacy`, `/terms`,

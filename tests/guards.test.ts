@@ -233,6 +233,16 @@ describe('model output is read defensively', () => {
 		expect(parseModelJson('')).toBeNull();
 	});
 
+	it('describes an unreadable reply by shape only, never by content', async () => {
+		const { describeUnreadable } = await import('$lib/server/model');
+		const leaky = 'Here is the review of the Zorka Foods budget of 40k: {"findings": []}';
+		const out = JSON.stringify(describeUnreadable(leaky));
+		expect(out).not.toContain('Zorka');
+		expect(out).not.toContain('40k');
+		expect(describeUnreadable(leaky).shape).toBe('prose');
+		expect(describeUnreadable('{"a":1}').shape).toBe('object');
+	});
+
 	it('keeps only the text blocks, so thinking never leaks into a response', async () => {
 		const { textOf } = await import('$lib/server/model');
 		const text = textOf({

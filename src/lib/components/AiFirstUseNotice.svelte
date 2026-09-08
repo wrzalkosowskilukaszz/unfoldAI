@@ -81,11 +81,11 @@
 					<ul class="flex flex-col gap-1.5 border-t border-border pt-3 sm:gap-2 sm:pt-3.5">
 						<li class="flex gap-2.5 text-[0.85rem] leading-relaxed text-ink-soft sm:text-[0.9rem]">
 							<Check size={15} class="mt-[3px] shrink-0 text-accent" />
-							<span>We never receive a copy. Nothing is stored on our servers.</span>
+							<span>It passes through our server only to reach Claude. Nothing is stored there.</span>
 						</li>
 						<li class="flex gap-2.5 text-[0.85rem] leading-relaxed text-ink-soft sm:text-[0.9rem]">
 							<Check size={15} class="mt-[3px] shrink-0 text-accent" />
-							<span>It isn't used to train any model.</span>
+							<span>Anthropic does not use it to train models.</span>
 						</li>
 						<li class="flex gap-2.5 text-[0.85rem] leading-relaxed text-ink-soft sm:text-[0.9rem]">
 							<Check size={15} class="mt-[3px] shrink-0 text-accent" />

@@ -60,8 +60,11 @@ export function verifyEvidence(brief: string, quotes: string[]): string[] {
 
 /**
  * What to log when a reply could not be read: its shape, never its content —
- * a brief's text must not reach the log aggregator.
+ * a brief's text must not reach the log aggregator, and neither may a model
+ * reply that could quote it.
  */
-export function describeUnreadable(text: string): { length: number; head: string } {
-	return { length: text.length, head: text.slice(0, 24) };
+export function describeUnreadable(text: string): { length: number; shape: string } {
+	const t = text.trim();
+	const shape = t.startsWith('{') ? 'object' : t.startsWith('[') ? 'array' : t.startsWith('```') ? 'fenced' : t.length === 0 ? 'empty' : 'prose';
+	return { length: t.length, shape };
 }

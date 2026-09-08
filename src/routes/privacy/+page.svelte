@@ -8,14 +8,14 @@
 	description="What Surveyvor does and does not collect. Your briefs stay in your browser; nothing is uploaded and nothing trains a model."
 />
 
-<LegalPage title="Privacy Policy" updated="27 August 2026">
+<LegalPage title="Privacy Policy" updated="8 September 2026">
 	<div class="summary">
 		<p><strong>The short version.</strong></p>
 		<ul>
 			<li>There is no account. We never ask for your name, email or a password.</li>
 			<li>
-				Your briefs are stored <strong>in your own browser</strong>. They are never uploaded to us and
-				we have no copy.
+				Your briefs are stored <strong>in your own browser</strong>. When you use an AI feature the
+				text passes through our server to reach the AI; it is not stored there, and we keep no copy.
 			</li>
 			<li>
 				When you use an AI feature, the text of that brief is sent to Anthropic to produce the
@@ -37,7 +37,8 @@
 	<h3>Your briefs — in your browser only</h3>
 	<p>
 		Everything you type into Surveyvor is saved to your browser's local storage on your own device.
-		It is not sent to us, and we have no server that stores it. The practical consequence, which
+		Nothing is uploaded for storage: when you use an AI feature the text passes through our server,
+		which forwards it to the AI and keeps nothing, and we have no database that holds it. The practical consequence, which
 		matters: <strong
 			>if you clear your browser data, your briefs are permanently gone and we cannot recover them.</strong
 		>
@@ -46,9 +47,11 @@
 
 	<h3>AI processing</h3>
 	<p>
-		When you press an AI button — refine a section, get interviewed, run a survey, polish the final
-		brief — the relevant text is transmitted to <strong>Anthropic PBC</strong> (United States), which
-		generates the response and returns it to you. We do not store the request or the response.
+		When you use an AI feature — refine a section, get interviewed, run a survey, polish the final
+		brief, sort an imported document, and the short automatic re-check of the other findings that runs
+		after you answer one — the relevant text is transmitted, via our server, to
+		<strong>Anthropic PBC</strong> (United States), which generates the response and returns it to you.
+		Our server relays the request and the response and stores neither. Nothing is sent while you type.
 	</p>
 	<p>
 		Anthropic states that by default it does not use inputs or outputs from its commercial API to
@@ -84,11 +87,13 @@
 	<ul>
 		<li>
 			<strong>Anthropic PBC</strong> (US) — the AI that produces surveys and refinements. Receives
-			brief text only when you ask for it.
+			brief text only when you use an AI feature, including the automatic re-check after you answer a
+			finding. Anthropic retains API data for a limited period under its own policy, linked above.
 		</li>
 		<li>
-			<strong>Vercel Inc.</strong> (US) — hosting, and the anonymous usage counts above. Sees
-			requests, not brief content. We deliberately kept analytics with our existing host rather
+			<strong>Vercel Inc.</strong> (US) — hosting, and the anonymous usage counts above. Our server
+			runs there, so brief text passes through Vercel's infrastructure in transit when you use an AI
+			feature; it is not stored, and the usage counts never contain it. We deliberately kept analytics with our existing host rather
 			than adding another company to this list.
 		</li>
 		<li>

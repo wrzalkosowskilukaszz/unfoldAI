@@ -151,7 +151,7 @@ Ask the single most useful next question, or finish if you have enough.`;
 	}
 
 	if (!isValidQuestion(result.question)) {
-		console.error('Question JSON failed shape validation:', parsed);
+		console.error(JSON.stringify({ type: 'unreadable', route: 'question', reason: 'shape' }));
 		// Rather than erroring out mid-interview, end gracefully with whatever we have.
 		if (answered.length > 0) return json({ done: true, question: null });
 		throw error(502, "The AI's response wasn't in the right format. Please try again.");

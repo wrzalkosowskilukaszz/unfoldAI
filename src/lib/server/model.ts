@@ -15,15 +15,31 @@ export function textOf(message: Pick<Message, 'content'>): string {
 }
 
 /**
- * Models are asked for raw JSON but still wrap it in a fence now and then.
- * Returns the parsed value, or null when it is not JSON at all.
+ * Models are asked for raw JSON but still wrap it in a fence, or lead with a
+ * sentence, now and then. Try the text as given, then whatever sits between
+ * the first "{" and the last "}". Returns null when nothing parses.
  */
 export function parseModelJson(text: string): unknown | null {
 	const trimmed = text.trim();
 	const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
-	try {
-		return JSON.parse(fenced ? fenced[1] : trimmed);
-	} catch {
-		return null;
+	const candidates = [fenced ? fenced[1] : trimmed];
+	const open = trimmed.indexOf('{');
+	const close = trimmed.lastIndexOf('}');
+	if (open !== -1 && close > open) candidates.push(trimmed.slice(open, close + 1));
+	for (const c of candidates) {
+		try {
+			return JSON.parse(c);
+		} catch {
+			// try the next shape
+		}
 	}
+	return null;
+}
+
+/**
+ * What to log when a reply could not be read: its shape, never its content —
+ * a brief's text must not reach the log aggregator.
+ */
+export function describeUnreadable(text: string): { length: number; head: string } {
+	return { length: text.length, head: text.slice(0, 24) };
 }

@@ -227,7 +227,9 @@ describe('model output is read defensively', () => {
 		expect(parseModelJson('{"a":1}')).toEqual({ a: 1 });
 		expect(parseModelJson('```json\n{"a":1}\n```')).toEqual({ a: 1 });
 		expect(parseModelJson('```\n{"a":1}\n```')).toEqual({ a: 1 });
-		expect(parseModelJson('Sure! Here is the JSON: {"a":1}'), 'prose is not JSON').toBeNull();
+		expect(parseModelJson('Sure! Here is the JSON: {"a":1}'), 'a leading sentence is tolerated').toEqual({ a: 1 });
+		expect(parseModelJson('{"a":1}\n\nLet me know if you need changes.'), 'a trailing sentence too').toEqual({ a: 1 });
+		expect(parseModelJson('no braces here'), 'prose without JSON is not JSON').toBeNull();
 		expect(parseModelJson('')).toBeNull();
 	});
 

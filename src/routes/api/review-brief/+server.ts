@@ -1,7 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
-import { parseModelJson, textOf } from '$lib/server/model';
+import { describeUnreadable, parseModelJson, textOf } from '$lib/server/model';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
 import { projectCoherence, projectLens, roleFraming } from '$lib/server/role';
@@ -179,9 +179,10 @@ Review this project and return your findings.`;
 		throw error(502, 'The review ran long and got cut off. Please try again.');
 	}
 
-	const parsed = parseModelJson(textOf(message));
+	const raw = textOf(message);
+	const parsed = parseModelJson(raw);
 	if (parsed === null) {
-		console.error('Failed to parse review JSON');
+		console.error(JSON.stringify({ type: 'unreadable', route: 'review', ...describeUnreadable(raw) }));
 		throw error(502, "The AI's response couldn't be read. Please try again.");
 	}
 

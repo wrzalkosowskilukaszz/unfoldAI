@@ -1,7 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
-import { parseModelJson, textOf } from '$lib/server/model';
+import { describeUnreadable, parseModelJson, textOf } from '$lib/server/model';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
 import type { SectionKey } from '$lib/types';
@@ -66,9 +66,10 @@ export const POST: RequestHandler = async ({ request }) => {
 		throw error(502, 'That document was too dense to sort in one pass. Try splitting it up.');
 	}
 
-	const parsed = parseModelJson(textOf(message)) as Record<string, unknown> | null;
+	const raw = textOf(message);
+	const parsed = parseModelJson(raw) as Record<string, unknown> | null;
 	if (!parsed || typeof parsed !== 'object') {
-		console.error('Failed to parse document-sort JSON');
+		console.error(JSON.stringify({ type: 'unreadable', route: 'document-sort', ...describeUnreadable(raw) }));
 		throw error(502, "The AI's response couldn't be read. Please try again.");
 	}
 

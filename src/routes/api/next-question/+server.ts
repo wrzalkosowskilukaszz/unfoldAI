@@ -1,7 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
-import { parseModelJson, textOf } from '$lib/server/model';
+import { describeUnreadable, parseModelJson, textOf } from '$lib/server/model';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
 import { projectLens, roleFraming } from '$lib/server/role';
@@ -133,9 +133,10 @@ Ask the single most useful next question, or finish if you have enough.`;
 
 	logUsage('next-question', message.usage);
 
-	const parsed = parseModelJson(textOf(message));
+	const raw = textOf(message);
+	const parsed = parseModelJson(raw);
 	if (parsed === null) {
-		console.error('Failed to parse question JSON');
+		console.error(JSON.stringify({ type: 'unreadable', route: 'question', ...describeUnreadable(raw) }));
 		throw error(502, "The AI's response couldn't be read. Please try again.");
 	}
 

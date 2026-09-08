@@ -285,6 +285,13 @@ oversight. Don't "upgrade" it to Opus.
 - **Thinking tokens count against `max_tokens`.** This truncated `/api/review-brief`
   mid-JSON until it got 8000 tokens plus streaming. If a route starts returning
   malformed JSON, check `stop_reason === 'max_tokens'` first.
+- **A survey takes 40–60 s and the reply is JSON in prose clothing.** Two of
+  three real surveys on 8 Sep 2026 came back unreadable because the model
+  wrapped its JSON in a sentence. `parseModelJson` now also takes whatever sits
+  between the first `{` and the last `}`; an unreadable reply logs
+  `{"type":"unreadable"}` with its length and first 24 characters, never the
+  content. If those log lines reappear, read the `head` before changing the
+  prompt.
 - **Prompt caching does not apply here.** All system prompts are 292–768 tokens,
   under Sonnet's 1024-token cache minimum, so `cache_control` is silently
   ignored. Revisit only if a shared prefix grows past ~1k tokens.

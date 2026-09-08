@@ -18,6 +18,11 @@ trustworthy.
   and unresolved decisions — before they become expensive problems.
 - **CTA:** Survey your project →
 - **First run:** Give it the mess / It surveys the terrain / Start on solid ground
+- **Data line (homepage, 8 Sep 2026):** Your briefs stay on your device. We don’t keep a
+  copy. When you ask AI to help, your text briefly passes through our server to reach the
+  AI, then it’s gone. Anthropic doesn’t use your text to train its models.
+  The two facts that must survive any rewrite: text *transits* our server, and the
+  no-training position is *Anthropic's*, not ours.
 
 ## Lines held in reserve
 

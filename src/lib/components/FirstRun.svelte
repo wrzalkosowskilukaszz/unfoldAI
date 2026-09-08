@@ -86,8 +86,8 @@
 		</span>
 		<p class="text-sm leading-relaxed text-ink-soft">
 			<span class="font-semibold text-ink">Your briefs stay on your device.</span>
-			We keep no copy. Text reaches the AI only when you use an AI feature — it passes through our
-				server on the way and is not stored — and Anthropic does not use it to train models.
+				We don’t keep a copy. When you ask AI to help, your text briefly passes through our server to
+				reach the AI, then it’s gone. Anthropic doesn’t use your text to train its models.
 			<a href="/privacy" class="font-medium text-accent hover:underline">How this works</a>
 		</p>
 	</div>

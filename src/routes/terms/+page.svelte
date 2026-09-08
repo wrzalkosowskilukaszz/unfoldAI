@@ -8,7 +8,7 @@
 	description="Terms of use for the free Surveyvor beta, operated by Take a Luke Studio."
 />
 
-<LegalPage title="Terms of Service" updated="27 August 2026">
+<LegalPage title="Terms of Service" updated="8 September 2026">
 	<div class="summary">
 		<p><strong>The short version.</strong></p>
 		<ul>
@@ -79,8 +79,8 @@
 	<p>
 		Everything you write in Surveyvor remains <strong>entirely yours</strong>. We claim no ownership
 		and no licence over it. As described in the
-		<a href="/privacy">Privacy Policy</a>, it is stored in your own browser and we never receive a
-		copy — except the text you explicitly send for AI processing, which we do not retain.
+		<a href="/privacy">Privacy Policy</a>, it is stored in your own browser. When you use an AI feature, the text you send passes
+		through our server only to reach the AI, and we do not retain it.
 	</p>
 	<p>
 		You are responsible for having the right to use whatever you paste in, including any

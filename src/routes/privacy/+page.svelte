@@ -5,7 +5,7 @@
 
 <Seo
 	title="Privacy — Surveyvor"
-	description="What Surveyvor does and does not collect. Your briefs stay in your browser; nothing is uploaded and nothing trains a model."
+	description="What Surveyvor does and does not collect. Your briefs stay in your browser. When you ask AI to help, the text passes through our server to reach Anthropic and is not stored; Anthropic does not train on it."
 />
 
 <LegalPage title="Privacy Policy" updated="8 September 2026">

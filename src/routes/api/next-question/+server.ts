@@ -2,6 +2,7 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
 import { describeUnreadable, parseModelJson, textOf } from '$lib/server/model';
+import { QUESTION_SCHEMA } from '$lib/server/schemas';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
 import { projectLens, roleFraming } from '$lib/server/role';
@@ -20,9 +21,7 @@ Rules:
 4. Prefer a simple multiple-choice question ("type": "choice", with 2-4 short "options") over an open one. Use "type": "text" only when a short list of options genuinely cannot capture the answer.
 5. Keep every question under 20 words, in plain everyday language. No jargon, no industry terms, no compound questions.
 6. Stop as soon as you have enough to write a genuinely useful section — usually after 3 or 4 questions. Never exceed the maximum you are given.
-7. Respond with ONLY raw JSON. No prose, no explanation, no markdown fences.
-   To ask another question: {"done": false, "question": {"id": "q3", "text": "...", "type": "choice", "options": ["...", "..."]}}
-   To finish: {"done": true}`;
+7. To ask another question: {"done": false, "question": {"id": "q3", "text": "...", "type": "choice", "options": ["...", "..."]}}. For a "text" question set "options" to []. To finish: {"done": true, "question": null}.`;
 
 interface RequestBody {
 	sectionName?: string;
@@ -32,6 +31,7 @@ interface RequestBody {
 	learnedContext?: { section: string; question: string; answer: string }[];
 	role?: unknown;
 	projectType?: unknown;
+	decisions?: { dimension: string; title: string; resolution?: string }[];
 }
 
 function isValidQuestion(value: unknown): value is HelpQuestion {
@@ -54,7 +54,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		throw error(400, 'Invalid JSON body');
 	}
 
-	const { sectionName, sectionRaw, otherSections, answered = [], learnedContext = [] } = body;
+	const { sectionName, sectionRaw, otherSections, answered = [], learnedContext = [], decisions = [] } = body;
 
 	if (!sectionName || !VALID_SECTIONS.has(sectionName)) {
 		throw error(400, `sectionName must be one of: ${[...VALID_SECTIONS].join(', ')}`);
@@ -65,7 +65,8 @@ export const POST: RequestHandler = async ({ request }) => {
 			sectionRaw,
 			...Object.values(otherSections ?? {}),
 			...answered.flatMap((a) => [a.question, a.answer]),
-			...learnedContext.flatMap((e) => [e.question, e.answer])
+			...learnedContext.flatMap((e) => [e.question, e.answer]),
+			...decisions.flatMap((d) => [d.title, d.resolution])
 		)
 	) {
 		throw error(413, 'That is more text than this tool can process at once. Please trim it down.');
@@ -111,6 +112,9 @@ ${contextLines || '(nothing else provided yet)'}
 What you've already learned about this project from interviewing them on earlier sections:
 ${learnedLines || '(this is the first section you have interviewed them on)'}
 
+Decisions already settled with the client — never ask about these again, build on them:
+${decisions.map((d) => `- ${d.dimension}: ${d.title} → ${d.resolution ?? 'confirmed'}`).join('\n') || '(none yet)'}
+
 This interview so far (${answered.length} of a maximum ${MAX_HELP_QUESTIONS} questions):
 ${sessionLines || '(no questions asked yet — this will be your first)'}
 
@@ -122,7 +126,7 @@ Ask the single most useful next question, or finish if you have enough.`;
 			model: 'claude-sonnet-4-6',
 			max_tokens: 1024,
 			thinking: { type: 'adaptive' },
-			output_config: { effort: 'low' },
+			output_config: { effort: 'low', format: { type: 'json_schema', schema: QUESTION_SCHEMA } },
 			system: SYSTEM_PROMPT,
 			messages: [{ role: 'user', content: userPrompt }]
 		});

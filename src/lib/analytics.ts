@@ -46,7 +46,7 @@ export const analytics = {
 	 * Resolved vs dismissed is the honest measure of whether the survey is
 	 * useful or merely noisy — the single most valuable thing to know.
 	 */
-	findingSettled: (how: 'resolved' | 'dismissed', kind: string) =>
+	findingSettled: (how: 'resolved' | 'dismissed' | 'retired', kind: string) =>
 		send('finding_settled', { how, kind }),
 
 	briefExported: (how: 'download' | 'copy' | 'print', hadOpenItems: boolean) =>

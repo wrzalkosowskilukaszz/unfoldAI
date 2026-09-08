@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ScanSearch, Loader2, AlertTriangle, RefreshCw, Sparkles } from '@lucide/svelte';
+	import { ScanSearch, Loader2, AlertTriangle, RefreshCw, Sparkles, Check } from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
 	import { analytics } from '$lib/analytics';
 	import { aiConsent } from '$lib/stores/aiConsent.svelte';
@@ -9,6 +9,55 @@
 
 	let status = $state<'idle' | 'loading' | 'error'>('idle');
 	let errorMsg = $state<string | null>(null);
+
+	/**
+	 * The cascade. After an answer is locked, ask whether it settles any of the
+	 * other open findings. Silent when nothing changes; one line when it does.
+	 */
+	let reconsidering = $state(false);
+	let cascadeNote = $state<string | null>(null);
+	let cascadeTimer: ReturnType<typeof setTimeout> | undefined;
+
+	async function reconsider(decided: Finding) {
+		const open = briefStore.openFindings.filter((f) => f.id !== decided.id);
+		if (open.length === 0) return;
+		if (!(await aiConsent.ensure())) return;
+
+		reconsidering = true;
+		try {
+			const sections: Record<string, string> = {};
+			for (const key of briefStore.sectionKeys) sections[key] = briefStore.sections[key]?.raw ?? '';
+			const data = await postJson<{ retire: { id: string; reason: string }[] }>('/api/reconsider', {
+				sections,
+				decision: {
+					dimension: decided.dimension,
+					title: decided.title,
+					question: decided.question,
+					resolution: decided.resolution
+				},
+				open: open.map((f) => ({
+					id: f.id,
+					kind: f.kind,
+					dimension: f.dimension,
+					title: f.title,
+					detail: f.detail,
+					question: f.question
+				}))
+			});
+			const n = briefStore.retireFindings(data.retire, decided.dimension);
+			if (n > 0) {
+				for (let i = 0; i < n; i++) analytics.findingSettled('retired', 'cascade');
+				cascadeNote = `That answer also settled ${n === 1 ? 'one more finding' : `${n} more findings`} — moved to Set aside.`;
+				clearTimeout(cascadeTimer);
+				cascadeTimer = setTimeout(() => (cascadeNote = null), 6000);
+			}
+		} catch {
+			// A cascade that fails must never undo or block the answer just given.
+		} finally {
+			reconsidering = false;
+		}
+	}
+	$effect(() => () => clearTimeout(cascadeTimer));
 
 	// A full-project review takes ~40s. Narrate it so the wait reads as work, not a hang.
 	const PROGRESS_NOTES = [
@@ -131,6 +180,18 @@
 		</p>
 	{/if}
 
+	{#if reconsidering}
+		<p class="flex items-center gap-1.5 text-xs text-ink-faint" aria-live="polite">
+			<Loader2 size={12} class="animate-spin" />
+			Checking what that answer settles...
+		</p>
+	{:else if cascadeNote}
+		<p class="rise flex items-center gap-1.5 text-xs text-clear" aria-live="polite">
+			<Check size={13} />
+			{cascadeNote}
+		</p>
+	{/if}
+
 	{#if status === 'loading' && !hasReviewed}
 		<div
 			class="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border-strong bg-surface-alt/30 px-6 py-14 text-center"
@@ -208,7 +269,7 @@
 		{#if sortedOpen.length > 0}
 			<div class="space-y-3">
 				{#each sortedOpen as finding, i (finding.id)}
-					<FindingCard {finding} index={i} />
+					<FindingCard {finding} index={i} onresolved={reconsider} />
 				{/each}
 			</div>
 		{/if}

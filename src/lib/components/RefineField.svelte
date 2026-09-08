@@ -35,7 +35,12 @@
 				rawInput: briefStore.sections[sectionKey]?.raw ?? '',
 				role: briefStore.meta.role,
 				projectType: briefStore.meta.projectType,
-				regenerate
+				regenerate,
+				decisions: briefStore.decisions.map((d) => ({
+					dimension: d.dimension,
+					title: d.title,
+					resolution: d.resolution
+				}))
 			});
 			briefStore.setRefined(sectionKey, data.refined);
 		} catch (err) {

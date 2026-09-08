@@ -1,12 +1,21 @@
 <script lang="ts">
-	import { Check, PencilLine, Lock, RotateCcw, ArrowRight, X } from '@lucide/svelte';
+	import { Check, PencilLine, Lock, RotateCcw, ArrowRight, ArrowUpRight, X } from '@lucide/svelte';
 	import { briefStore } from '$lib/stores/brief.svelte';
 	import { analytics } from '$lib/analytics';
-	import { FINDING_META, type Finding } from '$lib/types';
+	import { FINDING_META, SECTION_DEFS, type Finding } from '$lib/types';
 
-	let { finding, index }: { finding: Finding; index: number } = $props();
+	let {
+		finding,
+		index,
+		onresolved
+	}: { finding: Finding; index: number; onresolved?: (finding: Finding) => void } = $props();
 
 	let meta = $derived(FINDING_META[finding.kind]);
+	/** Where this finding's fix belongs, when it belongs somewhere specific. */
+	let fixStep = $derived(briefStore.stepForSection(finding.section));
+	let fixLabel = $derived(
+		finding.section === 'basics' ? 'Basics' : (SECTION_DEFS[finding.section ?? '']?.label ?? null)
+	);
 	let customMode = $state(false);
 	let customValue = $state('');
 
@@ -27,6 +36,7 @@
 		analytics.findingSettled('resolved', finding.kind);
 		customMode = false;
 		customValue = '';
+		onresolved?.(finding);
 	}
 
 	function submitCustom() {
@@ -68,11 +78,27 @@
 		<div class="space-y-1">
 			<h4 class="font-display text-base leading-snug font-semibold text-ink">{finding.title}</h4>
 			<p class="text-sm leading-relaxed text-ink-soft">{finding.detail}</p>
+			{#if finding.evidence && finding.evidence.length > 0}
+				<!-- The words this rests on, verified against the brief before they got here. -->
+				<p class="pt-1 text-xs leading-relaxed text-ink-faint">
+					From the brief:
+					{#each finding.evidence.slice(0, 2) as quote, i}
+						{#if i > 0}<span aria-hidden="true"> · </span>{/if}<q class="text-ink-soft">{quote}</q>
+					{/each}
+				</p>
+			{/if}
 		</div>
 
 		{#if finding.status === 'dismissed'}
 			<div class="flex items-start justify-between gap-3 rounded-xl bg-surface-alt/70 px-3 py-2">
-				<p class="text-sm text-ink-soft">Set aside — you decided this one doesn't apply.</p>
+				{#if finding.retiredBy}
+					<p class="text-sm text-ink-soft">
+						<span class="font-medium text-ink">Settled by your answer on {finding.retiredBy}.</span>
+						{#if finding.retiredReason}{finding.retiredReason}{/if}
+					</p>
+				{:else}
+					<p class="text-sm text-ink-soft">Set aside — you decided this one doesn't apply.</p>
+				{/if}
 				<button
 					type="button"
 					onclick={() => briefStore.reopenFinding(finding.id)}
@@ -161,17 +187,30 @@
 						argue with, and a tool that only ever tells you what's wrong is
 						one you stop opening.
 					-->
-					<button
-						type="button"
-						onclick={() => {
-						briefStore.dismissFinding(finding.id);
-						analytics.findingSettled('dismissed', finding.kind);
-					}}
-						class="mt-2.5 flex items-center gap-1 text-[0.72rem] font-medium text-ink-faint transition hover:text-ink-soft"
-					>
-						<X size={11} />
-						This doesn't apply
-					</button>
+					<div class="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1">
+						<button
+							type="button"
+							onclick={() => {
+								briefStore.dismissFinding(finding.id);
+								analytics.findingSettled('dismissed', finding.kind);
+							}}
+							class="flex items-center gap-1 text-[0.72rem] font-medium text-ink-faint transition hover:text-ink-soft"
+						>
+							<X size={11} />
+							This doesn't apply
+						</button>
+						{#if fixStep !== null && fixLabel}
+							<!-- The finding knows which section it belongs to; take them there. -->
+							<button
+								type="button"
+								onclick={() => briefStore.goToStep(fixStep)}
+								class="flex items-center gap-1 text-[0.72rem] font-medium text-accent transition hover:underline"
+							>
+								Fix it in {fixLabel}
+								<ArrowUpRight size={11} />
+							</button>
+						{/if}
+					</div>
 				{/if}
 			</div>
 		{:else}

@@ -247,6 +247,19 @@ describe('model output is read defensively', () => {
 	});
 });
 
+describe('a finding is only as good as its evidence', () => {
+	it('keeps quotes that occur in the brief, whatever the punctuation, and drops the rest', async () => {
+		const { verifyEvidence } = await import('$lib/server/model');
+		const brief = 'The board wants "a premium feel" but retail buyers are asking for price promotions.\nLaunch: 15 November.';
+		expect(verifyEvidence(brief, ['a premium feel', 'price promotions'])).toEqual(['a premium feel', 'price promotions']);
+		expect(verifyEvidence(brief, ['\u201ca premium feel\u201d']), 'curly quotes do not matter').toHaveLength(1);
+		expect(verifyEvidence(brief, ['A PREMIUM  FEEL']), 'case and spacing do not matter').toHaveLength(1);
+		expect(verifyEvidence(brief, ['launch 15 november']), 'punctuation does not matter').toHaveLength(1);
+		expect(verifyEvidence(brief, ['a luxury feel']), 'a paraphrase is not a quote').toEqual([]);
+		expect(verifyEvidence(brief, ['budget of 40k']), 'invented figures are dropped').toEqual([]);
+	});
+});
+
 describe('the browser reads API failures as the message the server wrote', () => {
 	it('surfaces the server message on a non-2xx, and the body on success', async () => {
 		const { postJson } = await import('$lib/api');

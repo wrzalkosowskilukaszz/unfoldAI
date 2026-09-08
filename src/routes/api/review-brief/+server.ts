@@ -1,7 +1,8 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
-import { describeUnreadable, parseModelJson, textOf } from '$lib/server/model';
+import { describeUnreadable, parseModelJson, textOf, verifyEvidence } from '$lib/server/model';
+import { REVIEW_SCHEMA } from '$lib/server/schemas';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
 import { projectCoherence, projectLens, roleFraming } from '$lib/server/role';
@@ -16,6 +17,9 @@ const VALID_KINDS: FindingKind[] = [
 	'assumption',
 	'why'
 ];
+
+/** Kinds that make a claim about what the brief says, and so must quote it. */
+const MUST_QUOTE: FindingKind[] = ['contradiction'];
 
 const SYSTEM_PROMPT = `You are a senior creative strategist reviewing a creative brief before it goes into production. You are not here to rewrite it. You are here to work out what is actually still unknown, assumed, contradictory, or unvalidated — the things that sink projects three weeks in.
 
@@ -33,13 +37,12 @@ Look for exactly these six kinds of finding:
 Rules:
 1. Return between 4 and 7 findings total. Quality over volume — never manufacture a problem to fill a quota.
 1a. MANDATORY: at least one finding — and at most three — MUST be of kind "clear". This is not optional and not filler. A reviewer who only ever reports problems reads as a nagging machine and gets ignored; naming what is genuinely solid is what makes the criticism credible. Even a weak brief has something anchored: a firm date, a named audience, a real constraint. Find it and say so. If you return zero "clear" findings you have failed this task.
-2. Every finding except "clear" MUST include a "question" that would resolve it, plus 2-4 "options" as likely answers. Each option must be under 12 words. The last option should usually be an escape hatch like "Something else" or "Not sure yet".
-3. Be concrete and quote the brief's own words in "detail". Never generic advice.
+2. Every finding except "clear" MUST include a "question" that would resolve it, plus 2-4 "options" as likely answers. Each option must be under 12 words. The last option should usually be an escape hatch like "Something else" or "Not sure yet". For "clear", set "question" to null and "options" to [].
+3. Be concrete. "evidence" holds 1-3 short quotes copied EXACTLY, character for character, from the brief text — the words the finding rests on. Never paraphrase inside "evidence". A "contradiction" must quote both sides. For "missing", and for an "assumption" about something the brief never mentions, "evidence" may be empty.
 4. "dimension" is a 1-3 word label for what it concerns: Audience, Success criteria, Budget, Scope, Positioning, Timeline, Approval, Problem.
-5. "title" is a short headline under 10 words. "detail" is AT MOST 2 sentences and under 45 words — be tight, this is a scannable card, not an essay.
-6. Do NOT raise anything already listed as a locked decision — those are settled.
-7. Respond with ONLY raw JSON, no prose and no markdown fences:
-{"findings": [{"id": "f1", "kind": "contradiction", "dimension": "Positioning", "title": "...", "detail": "...", "question": "...", "options": ["...", "..."]}]}`;
+5. "section" names where the fix belongs: one of the section ids listed under THE BRIEF, or "basics" for the project name, dates and client, or null when it concerns the whole brief.
+6. "title" is a short headline under 10 words. "detail" is AT MOST 2 sentences and under 45 words — be tight, this is a scannable card, not an essay.
+7. Do NOT raise anything already listed as a locked decision — those are settled.`;
 
 interface RequestBody {
 	meta?: Record<string, unknown>;
@@ -48,7 +51,22 @@ interface RequestBody {
 	decisions?: { dimension: string; title: string; resolution?: string }[];
 }
 
-function sanitizeFinding(value: unknown, index: number): Finding | null {
+/** The text a quote can be checked against: every section, plus the basics. */
+function briefText(meta: Record<string, unknown>, sections: Record<string, string>): string {
+	const str = (v: unknown) => (typeof v === 'string' ? v : '');
+	return [
+		str(meta.projectName),
+		str(meta.clientName),
+		...Object.values(sections).map((v) => (typeof v === 'string' ? v : ''))
+	].join('\n');
+}
+
+function sanitizeFinding(
+	value: unknown,
+	index: number,
+	knownSections: Set<string>,
+	brief: string
+): Finding | null {
 	if (!value || typeof value !== 'object') return null;
 	const f = value as Record<string, unknown>;
 
@@ -58,7 +76,7 @@ function sanitizeFinding(value: unknown, index: number): Finding | null {
 	if (typeof f.dimension !== 'string') return null;
 
 	// Anything actionable is useless without a question to resolve it.
-	const question = typeof f.question === 'string' ? f.question : undefined;
+	const question = typeof f.question === 'string' && f.question.trim() ? f.question : undefined;
 	if (kind !== 'clear' && !question) return null;
 
 	const options =
@@ -66,14 +84,28 @@ function sanitizeFinding(value: unknown, index: number): Finding | null {
 			? (f.options as string[]).slice(0, 4)
 			: undefined;
 
+	const section =
+		typeof f.section === 'string' && (f.section === 'basics' || knownSections.has(f.section))
+			? f.section
+			: null;
+
+	// Only quotes that are actually in the brief survive. A finding whose every
+	// quote fails is a finding about a brief that does not exist.
+	const offered = Array.isArray(f.evidence) ? f.evidence.filter((q) => typeof q === 'string') : [];
+	const evidence = verifyEvidence(brief, offered as string[]);
+	if (offered.length > 0 && evidence.length === 0) return null;
+	if (MUST_QUOTE.includes(kind) && evidence.length === 0) return null;
+
 	return {
 		id: typeof f.id === 'string' ? f.id : `f${index}`,
 		kind,
 		dimension: f.dimension,
+		section,
 		title: f.title,
 		detail: f.detail,
+		evidence,
 		question,
-		options,
+		options: kind === 'clear' ? undefined : options,
 		status: 'open'
 	};
 }
@@ -107,7 +139,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	const sectionLines = Object.entries(sections)
 		.map(
 			([key, value]) =>
-				`### ${SECTION_LABELS_FOR_PROMPT[key] ?? key}\n${value?.trim() || '(left empty)'}`
+				`### ${SECTION_LABELS_FOR_PROMPT[key] ?? key} (section id: ${key})\n${value?.trim() || '(left empty)'}`
 		)
 		.join('\n\n');
 
@@ -162,7 +194,7 @@ Review this project and return your findings.`;
 			model: 'claude-sonnet-4-6',
 			max_tokens: 8000,
 			thinking: { type: 'adaptive' },
-			output_config: { effort: 'medium' },
+			output_config: { effort: 'medium', format: { type: 'json_schema', schema: REVIEW_SCHEMA } },
 			system: SYSTEM_PROMPT,
 			messages: [{ role: 'user', content: userPrompt }]
 		});
@@ -188,13 +220,18 @@ Review this project and return your findings.`;
 
 	const rawFindings = (parsed as { findings?: unknown }).findings;
 	if (!Array.isArray(rawFindings)) {
-		console.error('Review JSON missing findings array:', parsed);
+		console.error('Review JSON missing findings array');
 		throw error(502, "The AI's response wasn't in the right format. Please try again.");
 	}
 
+	const known = new Set(Object.keys(sections));
+	const brief = briefText(meta, sections);
 	const findings = rawFindings
-		.map((f, i) => sanitizeFinding(f, i))
+		.map((f, i) => sanitizeFinding(f, i, known, brief))
 		.filter((f): f is Finding => f !== null);
+
+	const dropped = rawFindings.length - findings.length;
+	if (dropped > 0) console.warn(JSON.stringify({ type: 'evidence', route: 'review', dropped }));
 
 	if (findings.length === 0) {
 		throw error(502, 'The review came back empty. Please try again.');

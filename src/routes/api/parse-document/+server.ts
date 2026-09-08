@@ -2,6 +2,7 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { anthropic } from '$lib/server/anthropic';
 import { describeUnreadable, parseModelJson, textOf } from '$lib/server/model';
+import { DOCUMENT_SORT_SCHEMA } from '$lib/server/schemas';
 import { tooLong } from '$lib/server/rateLimit';
 import { logUsage } from '$lib/server/usage';
 import type { SectionKey } from '$lib/types';
@@ -21,8 +22,7 @@ Rules:
 4. If the document says nothing about a section, return an empty string for it. Never pad a section to look complete — an empty section is information.
 5. Also extract, if clearly present: "projectName" and "clientName". Empty string if not stated.
 6. In "unplaced", put anything meaningful that genuinely fits none of the four sections (internal notes, pricing negotiations, meeting logistics). Keep it brief.
-7. Respond with ONLY raw JSON, no prose, no markdown fences:
-{"projectName":"...","clientName":"...","objectives":"...","audience":"...","deliverables":"...","constraints":"...","unplaced":"..."}`;
+7. Fill every field; use an empty string for anything absent.`;
 
 const KEYS: SectionKey[] = ['objectives', 'audience', 'deliverables', 'constraints'];
 
@@ -48,7 +48,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			model: 'claude-sonnet-4-6',
 			max_tokens: 8000,
 			thinking: { type: 'adaptive' },
-			output_config: { effort: 'medium' },
+			output_config: { effort: 'medium', format: { type: 'json_schema', schema: DOCUMENT_SORT_SCHEMA } },
 			system: SYSTEM_PROMPT,
 			messages: [
 				{ role: 'user', content: `Here is the document:\n\n"""\n${text}\n"""\n\nSort it now.` }

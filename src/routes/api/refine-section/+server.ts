@@ -8,14 +8,21 @@ import { projectLens, roleFraming } from '$lib/server/role';
 import { CREATIVE_STRATEGIST_SYSTEM_PROMPT, SECTION_FRAMING, VALID_SECTIONS } from '$lib/server/prompts';
 
 export const POST: RequestHandler = async ({ request }) => {
-	let body: { sectionName?: string; rawInput?: string; regenerate?: boolean; role?: unknown; projectType?: unknown };
+	let body: {
+		sectionName?: string;
+		rawInput?: string;
+		regenerate?: boolean;
+		role?: unknown;
+		projectType?: unknown;
+		decisions?: { dimension: string; title: string; resolution?: string }[];
+	};
 	try {
 		body = await request.json();
 	} catch {
 		throw error(400, 'Invalid JSON body');
 	}
 
-	const { sectionName, rawInput, regenerate } = body;
+	const { sectionName, rawInput, regenerate, decisions = [] } = body;
 
 	if (!sectionName || !VALID_SECTIONS.has(sectionName)) {
 		throw error(400, `sectionName must be one of: ${[...VALID_SECTIONS].join(', ')}`);
@@ -24,7 +31,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		throw error(400, 'rawInput must not be empty');
 	}
 
-	if (tooLong(rawInput)) {
+	if (tooLong(rawInput, ...decisions.flatMap((d) => [d.title, d.resolution]))) {
 		throw error(413, 'That is more text than this tool can process at once. Please trim it down.');
 	}
 
@@ -33,7 +40,16 @@ export const POST: RequestHandler = async ({ request }) => {
 		? '\n\nThis is a regeneration request — produce a fresh alternative pass, structurally distinct from a typical first attempt, while still following all rules above.'
 		: '';
 
-	const userPrompt = `Section: ${sectionName}\n\nWho is writing this: ${roleFraming(body.role)}\n\nDiscipline: ${projectLens(body.projectType)}\n\n${framing}${regenerateNote}\n\nRaw notes to transform:\n"""\n${rawInput}\n"""`;
+	// Decisions the survey already locked are facts now — the rewrite must not
+	// reopen them as "clarifications needed".
+	const decisionNote =
+		decisions.length > 0
+			? `\n\nDECISIONS ALREADY SETTLED WITH THE CLIENT — treat as fact, never list them as open:\n${decisions
+					.map((d) => `- ${d.dimension}: ${d.title} → ${d.resolution ?? 'confirmed'}`)
+					.join('\n')}`
+			: '';
+
+	const userPrompt = `Section: ${sectionName}\n\nWho is writing this: ${roleFraming(body.role)}\n\nDiscipline: ${projectLens(body.projectType)}\n\n${framing}${regenerateNote}${decisionNote}\n\nRaw notes to transform:\n"""\n${rawInput}\n"""`;
 
 	let message;
 	try {

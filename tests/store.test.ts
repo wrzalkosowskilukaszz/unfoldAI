@@ -195,6 +195,30 @@ describe('findings survive a re-survey', () => {
 		expect(f?.dismissedAt, 'timestamp cleared so it does not look set-aside').toBeUndefined();
 	});
 
+	it('lets a later answer retire other findings, and brings them back cleanly', async () => {
+		const store = await seeded();
+		const n = store.retireFindings([{ id: 'b', reason: 'Settled by the printer choice.' }, { id: 'c', reason: 'x' }, { id: 'nope', reason: 'x' }], 'Timeline');
+		expect(n, 'only open, non-clear, known findings retire').toBe(1);
+		const b = store.findings.find((f) => f.id === 'b')!;
+		expect(b.status).toBe('dismissed');
+		expect(b.retiredBy).toBe('Timeline');
+		expect(store.openFindings.map((f) => f.id)).toEqual(['a']);
+
+		store.reopenFinding('b');
+		expect(store.findings.find((f) => f.id === 'b')?.retiredBy, 'the cascade note is cleared on reopen').toBeUndefined();
+	});
+
+	it('knows which step a finding belongs to', async () => {
+		const store = await freshStore();
+		store.createBrief();
+		store.updateMeta({ projectType: 'campaign' });
+		expect(store.stepForSection('basics')).toBe(1);
+		expect(store.stepForSection('objectives')).toBe(2);
+		expect(store.stepForSection('channels'), 'template sections count too').toBe(4);
+		expect(store.stepForSection('specs'), 'a section not in this template has no step').toBeNull();
+		expect(store.stepForSection(null)).toBeNull();
+	});
+
 	it('counts only open, non-clear findings as outstanding', async () => {
 		const store = await seeded();
 		expect(store.openFindings).toHaveLength(2);

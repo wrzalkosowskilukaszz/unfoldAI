@@ -254,6 +254,13 @@ class BriefStore {
 		return this.sectionKeys[step - 2] ?? null;
 	}
 
+	/** The step where a finding's section lives, so a card can take you there. */
+	stepForSection(section: string | null | undefined): number | null {
+		if (section === 'basics') return 1;
+		const i = section ? this.sectionKeys.indexOf(section) : -1;
+		return i === -1 ? null : i + 2;
+	}
+
 	isStepComplete(step: number): boolean {
 		const b = this.active;
 		if (step === 1) return b.meta.projectName.trim().length > 0;
@@ -512,8 +519,33 @@ class BriefStore {
 		finding.resolution = undefined;
 		finding.resolvedAt = undefined;
 		finding.dismissedAt = undefined;
+		finding.retiredBy = undefined;
+		finding.retiredReason = undefined;
 		this.touch();
 		this.persist();
+	}
+
+	/**
+	 * The cascade: a decision just made has settled other open findings. They
+	 * are set aside with a note saying which answer did it, and can be brought
+	 * back like any dismissal. Returns how many actually changed.
+	 */
+	retireFindings(retire: { id: string; reason: string }[], by: string): number {
+		let n = 0;
+		for (const { id, reason } of retire) {
+			const f = this.active.findings.find((x) => x.id === id);
+			if (!f || f.status !== 'open' || f.kind === 'clear') continue;
+			f.status = 'dismissed';
+			f.dismissedAt = new Date().toISOString();
+			f.retiredBy = by;
+			f.retiredReason = reason;
+			n++;
+		}
+		if (n > 0) {
+			this.touch();
+			this.persist();
+		}
+		return n;
 	}
 
 	appendHelpHistory(section: SectionKey, exchanges: { question: string; answer: string }[]) {

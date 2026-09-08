@@ -285,13 +285,31 @@ oversight. Don't "upgrade" it to Opus.
 - **Thinking tokens count against `max_tokens`.** This truncated `/api/review-brief`
   mid-JSON until it got 8000 tokens plus streaming. If a route starts returning
   malformed JSON, check `stop_reason === 'max_tokens'` first.
-- **A survey takes 40–60 s and the reply is JSON in prose clothing.** Two of
-  three real surveys on 8 Sep 2026 came back unreadable because the model
-  wrapped its JSON in a sentence. `parseModelJson` now also takes whatever sits
-  between the first `{` and the last `}`; an unreadable reply logs
-  `{"type":"unreadable"}` with its length and first 24 characters, never the
-  content. If those log lines reappear, read the `head` before changing the
-  prompt.
+- **Every JSON route uses schema-enforced output** (`output_config.format`,
+  schemas in `src/lib/server/schemas.ts`). Before this, two of three real
+  surveys on 8 Sep 2026 came back unreadable because the model wrapped its JSON
+  in a sentence. `parseModelJson` keeps its prose fallback, and an unreadable
+  reply logs `{"type":"unreadable"}` with length and a 24-character head, never
+  content. New fields must be added to the schema *and* the prompt.
+- **Findings carry evidence and a section.** `evidence` is verbatim quotes the
+  server verified against the brief (`verifyEvidence`); a finding whose every
+  quote fails, or a Tension with none, is dropped and counted in a
+  `{"type":"evidence"}` log line. `section` is where the fix belongs and drives
+  "Fix it in …" on the card. Never invent a step number for that link — use
+  `briefStore.stepForSection`.
+- **The cascade.** After an answer is locked, `/api/reconsider` (no thinking,
+  ~4 s) says which other open findings that answer settled; they are set aside
+  with `retiredBy`/`retiredReason` and count as settled in the summary. It only
+  ever retires, never adds, and a failure there must never touch the answer
+  just given.
+- **Locked decisions reach every prompt** — survey, interview, section rewrite
+  and final document. If you add an AI call site, pass `briefStore.decisions`.
+- **`npm run smoke <url>` spends about ten cents** running two fixed briefs
+  through the survey and checking shape, Marker, questions, evidence and section
+  references. Run it against production after any change to a route or prompt;
+  the unit tests cannot see model behaviour.
+- **A survey takes 40–70 s.** Narrated in the UI; still the biggest UX cost.
+  Measure any effort/thinking change against real briefs before shipping it.
 - **Prompt caching does not apply here.** All system prompts are 292–768 tokens,
   under Sonnet's 1024-token cache minimum, so `cache_control` is silently
   ignored. Revisit only if a shared prefix grows past ~1k tokens.

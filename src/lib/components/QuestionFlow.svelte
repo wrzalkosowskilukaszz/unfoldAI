@@ -94,7 +94,12 @@
 					answered: answers,
 					learnedContext: briefStore.helpHistory,
 					role: briefStore.meta.role,
-					projectType: briefStore.meta.projectType
+					projectType: briefStore.meta.projectType,
+					decisions: briefStore.decisions.map((d) => ({
+						dimension: d.dimension,
+						title: d.title,
+						resolution: d.resolution
+					}))
 				}
 			);
 			if (dead) return;

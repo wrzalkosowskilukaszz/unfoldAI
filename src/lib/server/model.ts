@@ -36,6 +36,28 @@ export function parseModelJson(text: string): unknown | null {
 	return null;
 }
 
+/** Case, quote marks, punctuation and spacing all vary between a brief and a quote of it. */
+export function normalizeForMatch(text: string): string {
+	return text
+		.toLowerCase()
+		.replace(/[\u2018\u2019\u201c\u201d"'`]/g, '')
+		.replace(/[^\p{L}\p{N}\s]/gu, ' ')
+		.replace(/\s+/g, ' ')
+		.trim();
+}
+
+/**
+ * Keeps only the quotes that really occur in the brief. A finding is only as
+ * trustworthy as its evidence, and a model can misremember what it just read.
+ */
+export function verifyEvidence(brief: string, quotes: string[]): string[] {
+	const haystack = normalizeForMatch(brief);
+	return quotes
+		.map((q) => q.trim())
+		.filter((q) => q.length >= 3 && haystack.includes(normalizeForMatch(q)))
+		.slice(0, 3);
+}
+
 /**
  * What to log when a reply could not be read: its shape, never its content —
  * a brief's text must not reach the log aggregator.

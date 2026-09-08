@@ -56,6 +56,18 @@ touched.
   and a duplicate keydown listener in the modal action.
 - Net: 31 files, roughly +370 / −290 lines, 63 tests (was 56).
 
+### Follow-up — 8 September 2026, after launch
+
+Running real surveys (the first ever, three of them) found that two in three
+replies were unreadable: the model wrapped its JSON in a sentence. Fixed the
+same day, then hardened properly: every JSON route now uses schema-enforced
+output. In the same pass the four behaviour gaps from the review were closed —
+locked decisions reach every prompt; findings name their section and the card
+links to it; every quote is verified against the brief before a finding is
+shown, and unsupported ones are dropped; and answering one finding re-examines
+the rest (the cascade), setting aside what it settled with a note saying why.
+`npm run smoke` runs paid surveys against a deployment and checks the shape.
+
 ### Going public — what changes and what to do
 
 Code is ready: the root page now serves real title and Open Graph tags from

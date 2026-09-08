@@ -56,8 +56,12 @@ export interface Finding {
 	kind: FindingKind;
 	/** The brief dimension this concerns, e.g. "Audience", "Success criteria". */
 	dimension: string;
+	/** Where the fix belongs: a section id, "basics", or null for the whole brief. */
+	section?: string | null;
 	title: string;
 	detail: string;
+	/** Verbatim quotes from the brief, each verified to exist in it. */
+	evidence?: string[];
 	/** Present on anything actionable; absent on `clear`. */
 	question?: string;
 	options?: string[];
@@ -67,6 +71,9 @@ export interface Finding {
 	resolvedAt?: string;
 	/** Set when the user says the finding doesn't apply. */
 	dismissedAt?: string;
+	/** Set instead when a later decision settled it: which decision, and why. */
+	retiredBy?: string;
+	retiredReason?: string;
 }
 
 export const FINDING_META: Record<

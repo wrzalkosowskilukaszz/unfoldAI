@@ -16,8 +16,9 @@
 
 	let counts = $derived({
 		markers: findings.filter((f) => f.kind === 'clear').length,
-		settled: findings.filter((f) => f.status === 'confirmed').length,
-		setAside: findings.filter((f) => f.status === 'dismissed').length,
+		// A finding settled by a later answer (the cascade) is settled, not set aside.
+		settled: findings.filter((f) => f.status === 'confirmed' || (f.status === 'dismissed' && f.retiredBy)).length,
+		setAside: findings.filter((f) => f.status === 'dismissed' && !f.retiredBy).length,
 		open: findings.filter((f) => f.status === 'open' && f.kind !== 'clear').length
 	});
 

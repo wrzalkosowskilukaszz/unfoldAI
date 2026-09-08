@@ -175,6 +175,16 @@ generous whitespace; motion should feel physical, never linear easing.
 `npm test` — Vitest, jsdom, ~63 tests. Run it before pushing; it has already
 caught a real auth bug and two silent template-blindness bugs.
 
+**Three process skills live in `.claude/skills/`** (from addyosmani/agent-skills):
+`browser-testing` (verify in a real browser: console, network, accessibility,
+vitals, screenshots), `test-driven-development` (failing test first; a bug
+gets a reproduction test before a fix), and `debugging` (reproduce, localise,
+reduce, fix the root cause, guard). Follow them. The browser one assumes a
+DevTools MCP server; here the same checklist runs as
+`node scripts/browser-audit.mjs <url> [--mobile] [--clear]` — every page, zero
+console errors or warnings, no failed requests, one visible h1, no heading
+skips, every control named, LCP and CLS printed.
+
 **Look at the real page, not the type-checker.** The in-app browser pane never
 repaints after a scroll, so use `scripts/shot.mjs` (headless Chrome over the
 DevTools protocol) for anything below the fold, every phone-width check, and

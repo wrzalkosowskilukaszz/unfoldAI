@@ -235,11 +235,11 @@
 						<ChevronLeft size={20} />
 					</button>
 
-					<h2
+					<h1
 						class="min-w-0 flex-1 truncate font-display text-[1.02rem] font-semibold tracking-[-0.015em] text-ink"
 					>
 						{briefStore.name}
-					</h2>
+					</h1>
 
 					<button
 						type="button"
@@ -290,11 +290,11 @@
 					All briefs
 				</button>
 
-				<h2
+				<h1
 					class="mt-2 font-display text-[1.05rem] leading-snug font-semibold tracking-[-0.015em] text-ink"
 				>
 					{briefStore.name}
-				</h2>
+				</h1>
 
 				<div class="mt-7">
 					<StepNav current={briefStore.step} onjump={jumpToStep} />

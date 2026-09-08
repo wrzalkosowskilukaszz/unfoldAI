@@ -344,9 +344,9 @@
 			<p class="text-[0.66rem] font-semibold tracking-[0.2em] text-accent uppercase">
 				Creative Brief
 			</p>
-			<h1 class="mt-3 font-display text-3xl leading-[1.1] font-semibold tracking-[-0.02em] text-ink">
+			<h2 class="mt-3 font-display text-3xl leading-[1.1] font-semibold tracking-[-0.02em] text-ink">
 				{briefStore.meta.projectName.trim() || 'Untitled Project'}
-			</h1>
+			</h2>
 
 			{#if metaRows.length > 0}
 				<dl class="mt-6 flex flex-wrap gap-x-10 gap-y-3">

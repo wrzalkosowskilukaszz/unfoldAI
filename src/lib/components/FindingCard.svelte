@@ -76,7 +76,7 @@
 		</div>
 
 		<div class="space-y-1">
-			<h4 class="font-display text-base leading-snug font-semibold text-ink">{finding.title}</h4>
+			<h3 class="font-display text-base leading-snug font-semibold text-ink">{finding.title}</h3>
 			<p class="text-sm leading-relaxed text-ink-soft">{finding.detail}</p>
 			{#if finding.evidence && finding.evidence.length > 0}
 				<!-- The words this rests on, verified against the brief before they got here. -->
